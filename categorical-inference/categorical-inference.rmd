@@ -2,36 +2,320 @@
 title: "Inferência em Dados Categoricos"
 author: "André M Ribeiro-dos-Santos"
 date: "13/03/2017"
-output: 
+output:
   beamer_presentation:
-    theme: "metropolis" 
+    theme: "metropolis"
+fontsize: 10pt
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+```{r setConfig, include = F}
+knitr::knit_hooks$set(change_size = function(before, options, envir) {
+    if (before) {
+        return(paste(options$change_size))
+    }
+})
+knitr::opts_chunk$set(prompt = TRUE, change_size='\\small')
+
+## hwfq     <- function(p) c(p**2, 2 * p * (1-p), (1-p)**2)
+## n        <- 50
+## amostra  <- sprintf("S%02d", 1:n)
+## sexo     <- sample(c("M", "F"), n, replace = T)
+## idade    <- floor(rnorm(n, 15, 3))
+## hipoptr  <- sample(c("Sim", "Não"), n, replace = T, prob = c(0.76, 0.24))
+## anemia   <- sample(c("Sim", "Não"), n, replace = T, prob = c(0.4, 0.6))
+## response <- ifelse(hipoptr == "Sim",
+##                   sample(c("I", "II", "III"), n, replace = T, prob = hwfq(0.55)),
+##                   sample(c("I", "II", "III"), n, replace = T, prob = hwfq(0.3)),
+## mut_a    <- ifelse(hipoptr == "Sim",
+##                   sample(c("AA", "Aa", "aa"), n, replace = T, prob = hwfq(0.4)),
+##                   sample(c("AA", "Aa", "aa"), n, replace = T, prob = hwfq(0.1))
+## mut_b    <- ifelse(hipoptr == "Sim",
+##                   sample(c("BB", "Bb", "bb"), n, replace = T, prob = hwfq(0.1)),
+##                   sample(c("BB", "Bb", "bb"), n, replace = T, prob = hwfq(0.25))
+## write.table(
+##     data.frame(amostra = amostra,
+##                sexo    = sexo,
+##                idade   = idade,
+##                hipoptr = hipoptr,
+##                anemia  = anemia,
+##                response= response,
+##                mut_a   = mut_a,
+##                mut_b   = mut_b),
+##    'cftr-ex.tsv', quote=F, row.names=F)
 ```
 
-## R Markdown
+## Imagine...
 
-This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+Você estuda Fibrose Cística na população de Belém. Você começou a
+reunir amostras de casos da doença no HUJBB. Na primeira coleta,
+você obteve 10 amostras das quais 7 (70%) apresentam um quadro de
+hipoproteinemia. No entanto, espera-se que apenas 45% dos casos
+aprensetem hipoproteinemia.
+*A elevada incidência pode indicar um importante fator genético
+atuando na população.*
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
+\begin{center}
+  \usebeamerfont*{frametitle}
+  A amostra diferencia-se da proporção esperada?
+\end{center}
 
-## Slide with Bullets
+## Objetivos
 
-- Bullet 1
-- Bullet 2
-- Bullet 3
+- Reconhecer variáveis categoricas.
+- Identificar quando aplicar teste binomial.
+- Identificar quando aplicar um teste de qui-quadrado e/ou Fisher.
+- Compreender qual a questão estatística resolvida por cada teste.
+- Reproduzir os testes em R.
+- Saber como e com quais ferramentas responder as questões anteriores.
 
-## Slide with R Output
+## Avaliando o problema
 
-```{r cars, echo = TRUE}
-summary(cars)
+**Quais as características do experimento?**
+
+- Qual Tamanho da amostra?
+- Qual a variável em questão?
+- A variável é numérica ou categorica?
+
+## Avaliando o problema
+
+**Quais as características do experimento?**
+
+- Qual Tamanho da amostra? **10**
+- Qual a variável em questão?
+  **presença de hipoproteinemia**
+- A variável é numérica ou categorica?
+  **categorica, com duas respostas**
+
+***
+
+```{r}
+  par(mfrow = c(1,2))
+  barplot(c("Sim" = 7,   "Não" = 3),   main = "Observado")
+  barplot(c("Sim" = 4.5, "Não" = 5.5), main = "Esperado")
 ```
 
-## Slide with Plot
+# Testes de Proporção
 
-```{r pressure}
-plot(pressure)
+## Teste Binomial
+
+**Como testar se a proporção observada é diferente da
+esperada?**
+
+O teste estatístico mais indicado é o **teste binomial**. Este
+basei-se nas probabilidades obtidas num experimento de Bernolli
+(ou *Bernoulli trial*), que consiste em qualquer experimento
+estatítico com apenas duas respostas (e.g. *sucesso* ou *falha*).
+O teste avalia, portanto, o número de *sucessos* numa amostra e
+compara a uma proporção esperada.
+
+$$
+\begin{aligned}
+	Ho: \hat{p} = p; & ~~ Ha: \hat{p} \neq p & ~~ Bilateral \\
+	Ho: \hat{p} = p; & ~~ Ha: \hat{p} <    p & ~~ Menor \\
+	Ho: \hat{p} = p; & ~~ Ha: \hat{p} >    p & ~~ Maior
+\end{aligned}
+$$
+
+***
+
+```{r, eval = FALSE}
+? binom.test
+## Exact Binomial Test
+##
+## Description:
+##    Performs an exact test of a simple null
+##    hypothesis about the probability of
+##    success in a Bernoulli experiment.
+## Usage:
+##    binom.test(x, n, p = 0.5,
+##      alternative = c("two.sided", "less", "greater"),
+##      conf.level = 0.95)
+## ...
 ```
 
+## Teste Binomial
+
+\begin{center}
+  \usebeamerfont*{frametitle}
+  A amostra diferencia-se da proporção esperada?
+\end{center}
+
+```{r}
+binom.test(7, n = 10, p = 0.45)
+```
+
+## Distribuição Binomial
+
+$$ Binom(n, p) $$
+
+Esta distribuição descreve as probabilidade observadas num
+experimento de Bernoulli. Corresponde a probabilidade de
+observar-se $x$ sucessos em $n$ experimentos.
+
+$$ P(x; n, p) = {{n}\choose{x}} p^x q^{n-x} $$
+
+***
+
+```{r}
+par(mfrow = c(2,2))
+barplot(dbinom(0:10, size = 10, p = 0.7), main = "Binom(0.70, 10)")
+barplot(dbinom(0:10, size = 10, p = 0.5), main = "Binom(0.50, 10)")
+barplot(dbinom(0:10, size = 10, p = 0.1), main = "Binom(0.10, 10)")
+barplot(dbinom(0:50, size = 50, p = 0.7), main = "Binom(0.10, 50)")
+```
+
+***
+
+```{r, fig.height = 4.5}
+marked <- (0:10 < floor(7 - 4.5)) | (0:10 >= 7)
+probs  <- dbinom(0:10, size = 10, p = 0.45)
+barplot(probs, col = marked, main = "Binom(0.45, 10)")
+
+sum(probs[marked])
+```
+
+## Exercícios
+
+1. Após a segunda coleta de amostras, os pesquisadores observaram mais
+12 casos de hipoproteinemia entre as 15 amostras coletadas. Ao reunir
+ambas as amostras, os pesquisadores podem constatar diferenças
+significativas entre os casos de hipoproteinemia observado e esperado?
+
+2. Qual foi o *Odds-Ratio* ou risco relativo da amostra?
+   $$OR=\dfrac{p_o / (1 - p_o)}{p_e / (1 - p_e)}$$
+
+3. Qual o intervalo de confiança da proporção observada? Represente o
+intervalo com um gráfico.
+
+4. A hipoproteinemia ocorre com frequência associada a anemia, os
+pesquisadores decidiram avaliar se anemia também estava alterada na
+amostra. Dado a tabela em anexo, avalie se houve mudança em
+relação a proporção de anemicos esperados (35\%). Qual a conclusão?
+
+## Resolução (1)
+
+```{r}
+x <- 7 + 12
+n <- 10 + 15
+
+binom.test(x, n, p = 0.45)
+```
+
+## Resolução (2)
+
+```{r}
+p_obs <- x / n
+p_exp <- 0.45
+
+(p_obs/ (1 - p_obs)) / (p_exp / (1-p_exp))
+```
+
+## Resolução (3)
+
+```{r}
+lower <- qbinom(0.025, n, p_obs) / n
+upper <- qbinom(0.975, n, p_obs) / n
+
+c(lower, upper)
+```
+
+***
+
+```{r, fig.height = 4.5}
+par(mfrow = c(1,2))
+
+barplot(c("Esperado" = p_exp, "Observado" = p_obs), ylim=c(0, 1))
+arrows(1.9, lower, 1.9, upper, code = 3, angle = 90)
+
+plot(1, p_obs, ylim=c(0,1))
+arrows(1, p_obs + c(-0.02, 0.02), 1, c(lower, upper), angle=90)
+abline(h = p_exp, lty = 'dashed', col = 'red')
+```
+
+## Resolução (4)
+
+```{r, change_size = '\\footnotesize'}
+cftr <- read.table('cftr-ex.tsv', header = T)
+
+table(cftr$anemia)
+binom.test(table(cftr$anemia), p = 1 - 0.35)
+```
+
+## Exercícios
+
+1. Dada uma variável $x$ corresponde ao número de sucessos em uma série de
+50 experimentos de Bernoulli com probabilidade de sucesso 30\%. Calcule:
+	- $P(X = 15)$, $P(x >= 15)$, e $P(x < 15).
+	- $P(15 < X <= 35)$.
+	- Quantiles $x_{0.025}$ e $x_{0.975}$.
+2. Qual a frequência do sexo e responsta ao tratamento (*response*) na
+amostra de **cftr**?
+3. A amostra apresenta uma proporção similar de homens e mulheres?
+
+
+## Resoluções (1)
+
+```{r}
+dbinom(15, 50, 0.3)
+## sum(dbinom(15:50, 50, 0.3))
+pbinom(14, 50, 0.3)
+## sum(dbinom(0:14,  50, 0.3))
+pbinom(14, 50, 0.3, lower.tail = F)
+```
+
+***
+
+```{r}
+## sum(dbinom(16:35, size = 50, p = 0.3))
+pbinom(35, 50, 0.3) - pbinom(15, 50, 0.3)
+
+qbinom(c(0.025, 0.975), 50, 0.3)
+```
+
+## Resolução (2)
+
+```{r}
+prop.table(table(cftr$sexo))
+prop.table(table(cftr$response))
+```
+
+## Resolução (3)
+```{r}
+binom.test(table(cftr$sexo))
+```
+
+## Uma questão de independência
+
+Ao pesquisar os sintomas de *Fibrose Cistíca*, os pesquisadores
+constataram que *anemia* geralmente acompanha os pacientes com
+*hipoproteinemia*. Sendo a ocorrência de anemia muito mais comun
+entre pacientes com *hipoproteinemia*. Na amostra estudada, eles
+observaram a seguinte tabela de confunsão:
+
+-----------------------------
+                 Anemia
+Hipoproteinemia     Não  Sim
+--------------- ------- ----
+           Não       2    6
+
+           Sim      11    7
+-----------------------------
+
+\begin{center}
+  \usebeamerfont*{frametitle}
+  A anemia está distribuida independentemente da hipoproteinemia?
+\end{center}
+
+## Avaliando o problema
+
+# Testes de Independência
+
+## Teste de Fisher
+
+## Teste de Qui-quadrado
+
+## Exercícios
+
+## Resolução
+
+# Até a próxima
