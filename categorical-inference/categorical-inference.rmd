@@ -363,6 +363,8 @@ utilizar o **teste de Fisher**.
 
 $$ Ho: P(B|A) = P(B); ~~ Ha: P(B|A) \neq P(B) $$
 
+***
+
 ```{r fisherTestDoc, eval = FALSE}
 ? fisher.test
 ## Fisher's Exact Test for Count Data
@@ -387,6 +389,7 @@ table <- matrix(c(2, 11, 6, 7), nrow=2,
                                "anemia"          = c("Não", "Sim")))
 addmargins(table)
 ```
+
 ***
 
 ```{r contigencyTablePlot}
@@ -395,7 +398,9 @@ mosaicplot(table)
 barplot(table, beside=TRUE, xlab = "Hipoproteinemia",
         legend=paste("Anemia: ", rownames(table)))
 ```
+
 ***
+
 ```{r fisherTest}
 fisher.test(table)
 ```
@@ -425,7 +430,76 @@ Resposta              Não  Sim
 
 ## Teste de Qui-quadrado
 
+Neste caso, uma da variavéis em questão possui três possíveis
+respostas, não sendo mais adequado utilizar o **teste de Fisher**,
+no lugar podemos utilizar o **teste de Qui-quadrada** para avaliar
+a independência.
 
+$$ Ho: P(B|A) = P(B); ~~ Ha: P(B|A) \neq P(B) $$
+
+O teste usa a dsitribuição qui-quadrada ou $\chi^2$ para avaliar
+o teste.
+
+$$ \chi^2 = \sum_i \dfrac{(O_i - E_i)^2}{E_i} $$
+
+***
+
+A distribuição Qui-quadrada ou $\chi^2(k)$ com $k$ graus de liberdade
+representa a distribuição da soma dos quadrados de $k$ independentes
+curvas normais.
+
+$$ df = (|linhas| - 1) * (|colunas| - 1) $$
+
+```{r chiSquaredDist, echo = FALSE, fig.height = 5}
+xs  <- seq(0, 10, 0.1)
+dfs <- 1:5
+
+par(mfrow=c(1, 2))
+plot(1, main="Chi-squared distribution", type="n",
+     xlab = "Chi-squared", ylab = "",
+     xlim=c(0, 10), ylim=c(0, 0.6))
+for (df in dfs)
+    curve(dchisq(x, df = df), add=T, col = df)
+legend("topright", paste("df =", dfs), lty=1, col=dfs, bg="white")
+
+plot(1, main="Chi-squared cumulative distribution", type="n",
+     xlab = "Chi-squared", ylab = "",
+     xlim=c(0, 10), ylim=c(0, 1))
+for (df in dfs)
+    curve(pchisq(x, df = df), add=T, col = df)
+legend("topright", paste("df =", dfs), lty=1, col=dfs, bg="white")
+```
+
+***
+
+```{r chisqTestDoc, eval=FALSE}
+? chisq.test
+## Pearson's Chi-squared Test for Count Data
+## Description:x
+##      ‘chisq.test’ performs chi-squared contingency table
+##      tests and goodness-of-fit tests.
+## Usage:
+##      chisq.test(x, y = NULL, correct = TRUE,
+##                 p = rep(1/length(x), length(x)),
+##                 rescale.p = FALSE,
+##                 simulate.p.value = FALSE, B = 2000)
+```
+
+***
+
+```{r chisqTestExampleManual}
+obs  <- matrix(c(0, 3, 3, 6, 10, 3), nrow = 3)
+exp  <- rowSums(obs) %*% t(colSums(obs)) / sum(obs)
+(chi <- sum((obs-exp)^2/exp))
+df   <- (nrow(obs) - 1) * (ncol(obs) - 1)
+1 - pchisq(chi, df = df)
+```
+
+***
+
+```{r chisqTestExampleFunction}
+chisq.test(obs)
+```
 
 ## Exercícios
 
