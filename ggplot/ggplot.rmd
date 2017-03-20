@@ -1,0 +1,102 @@
+---
+title: "GGplot2"
+author: "André M Ribeiro-dos-Santos"
+date: "13/03/2017"
+output:
+  beamer_presentation:
+    theme: "metropolis"
+fontsize: 10pt
+---
+
+```{r setup, include = FALSE}
+knitr::knit_hooks$set(change_size = function(before, options, envir) {
+    if (before) {
+        return(paste(options$change_size))
+    }
+})
+knitr::opts_chunk$set(prompt = TRUE, warning = FALSE, change_size='\\small')
+```
+
+## Objetivos
+
+- xxxx
+- xxxx
+- xxxx
+
+# GGPLOT2
+
+## Carregando pacote...
+
+```{r loadGgplot}
+## Para instalar o pacote:
+## install.packages('ggplot2')
+library(ggplot2)
+```
+
+## Scatter
+
+```{r ggplotExScatter, fig.height=3, fig.align='center'}
+data <- data.frame(x = rnorm(100), y = rnorm(100),
+                   set = sample(c("A", "B"), 100, replace = T))
+ggplot(data, aes(x, y, color=set)) +
+    geom_point() +
+    facet_grid(~set) +
+    theme_bw()
+```
+
+## Line
+
+```{r ggplotExLine, fig.width=5, fig.height=3}
+xs <- seq(-5, 10, 0.1)
+ys <- xs^2 - 2 * xs + 5
+qplot(xs, ys, geom='line') + theme_bw()
+```
+
+## Barplot
+
+```{r ggplotExBarplot, fig.width=5, fig.height=2.5}
+data <- data.frame(
+    hipoptr = sample(c("Sim", "Não"), 50, replace=T),
+    anemia  = sample(c("Sim", "Não"), 50, replace=T))
+ggplot(data, aes(hipoptr)) + geom_bar() + theme_bw()
+```
+
+***
+
+```{r ggplotExBarplotFilled, fig.width=4, fig.height=3.5, fig.align='center'}
+ggplot(data, aes(hipoptr, fill=anemia)) +
+    geom_bar(position = "dodge") +
+    theme_bw()
+```
+
+***
+
+```{r ggplotExDist, fig.height=4.5}
+qplot(x = 0:10, y = dbinom(0:10, size=10, p=0.45),
+      fill = (0:10 < floor(7 - 4.5)) | (0:10 >= 7),
+      geom='col') +
+    labs(x = "", y = "P") +
+    guides(fill=FALSE) +
+    theme_bw()
+```
+
+## ErrorBar
+
+```{r ggplotExErroBar, fig.height=2.5}
+cnfint <- qbinom(c(0.025, 0.975), 25, 0.72) / 25
+data <- data.frame(source = c("Esperada", "Observada"),
+                   p = c(0.45, 0.72),
+                   lower = c(0.45, cnfint[1]),
+                   upper = c(0.45, cnfint[2]))
+ggplot(data, aes(source, p, ymin=lower, ymax=upper)) +
+    geom_col() + geom_errorbar(width=.2) +
+    theme_bw()
+```
+
+## PointRange
+
+```{r ggplotExPointRange, fig.width=5, fig.height=3.5, fig.align='center'}
+ggplot(data, aes(source, p, ymin=lower, ymax=upper)) +
+    geom_pointrange() +
+    theme_bw()
+```
