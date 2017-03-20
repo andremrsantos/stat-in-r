@@ -1,11 +1,12 @@
 ---
-title: "Inferência em Dados Categoricos"
-author: "André M Ribeiro-dos-Santos"
-date: "13/03/2017"
+title:    "Inferência em Dados Categóricos"
+subtitle: "Bioestatística em R"
+author:   "André M Ribeiro-dos-Santos"
+date:     "`r format(Sys.Date(), '%d de %m, %Y')`"
+fontsize: 10pt
 output:
   beamer_presentation:
     theme: "metropolis"
-fontsize: 10pt
 ---
 
 ```{r setup, include = FALSE}
@@ -15,9 +16,9 @@ knitr::knit_hooks$set(change_size = function(before, options, envir) {
     }
 })
 
-knitr::opts_chunk$set(prompt = TRUE, change_size='\\small')
+knitr::opts_chunk$set(prompt = TRUE, warning = FALSE, change_size='\\small')
 
-## hwfq     <- function(p) c(p**2, 2 * p * (1-p), (1-p)**2)
+## hwfq     <- function(p) c(p^2, 2 * p * (1-p), (1-p)^2)
 ## n        <- 50
 ## amostra  <- sprintf("S%02d", 1:n)
 ## sexo     <- sample(c("M", "F"), n, replace = T)
@@ -47,7 +48,7 @@ knitr::opts_chunk$set(prompt = TRUE, change_size='\\small')
 
 ## Objetivos
 
-- Reconhecer variáveis categoricas.
+- Reconhecer variáveis categóricas.
 - Identificar quando aplicar teste binomial.
 - Identificar quando aplicar um teste de qui-quadrado e/ou Fisher.
 - Compreender qual a pergunta estatística resolvida por cada teste.
@@ -58,13 +59,13 @@ knitr::opts_chunk$set(prompt = TRUE, change_size='\\small')
 
 ## Imagine...
 
-Você estuda Fibrose Cística na população de Belém. Você começou a
+Num estudo de Fibrose Cística na população de Belém. Você começou a
 reunir amostras de casos da doença no HUJBB. Na primeira coleta,
 você obteve 10 amostras das quais 7 (70%) apresentam um quadro de
-hipoproteinemia. No entanto, espera-se que apenas 45% dos casos
-aprensetem hipoproteinemia.
-*A elevada incidência pode indicar um importante fator genético
-atuando na população.*
+hipoproteinemia. No entanto, esperava-se que apenas 45% dos casos
+apresentem hipoproteinemia.
+**A elevada incidência pode indicar um fator genético atuando na
+população.**
 
 \begin{center}
   \usebeamerfont*{frametitle}
@@ -80,7 +81,7 @@ atuando na população.*
 
 - Qual Tamanho da amostra?
 - Qual a variável em questão?
-- A variável é numérica ou categorica?
+- A variável é numérica ou categórica?
 - Quantos casos foram observados e quantos seriam esperados?
 
 ## Avaliando o problema
@@ -90,10 +91,10 @@ atuando na população.*
 - Qual Tamanho da amostra? **10**
 - Qual a variável em questão?
   **presença de hipoproteinemia**
-- A variável é numérica ou categorica?
-  **categorica, com duas respostas**
+- A variável é numérica ou categórica?
+**categórica, com duas respostas**
 - Quantos casos foram observados e quantos seriam esperados?
-  **Foram observados 7, mas esperaria-se 4.5**
+  **Foram observados 7, mas esperava-se 4.5**
 
 ***
 
@@ -105,10 +106,10 @@ atuando na população.*
 
 ## Distribuição Binomial $B(n, p)$
 
-A distribuição de **variáveis categoricas com duas altertivas
+A distribuição de **variáveis categóricas com duas alterativas
 (ou grupos)** são descritas por uma **distribuição binomial**
-(ou de bernoulli), a qual é a probabilidade *discreta* de
-observa-se $x$ "sucessos" em $n$ independente experimentos com
+(ou de bernoulli). A qual descreve a probabilidade *discreta* de
+observa-se $x$ *"sucessos"* em $n$ independente experimentos com
 probabilidade $p$.
 
 $$ P(x; n, p) = {{n}\choose{x}}  p^x (1-p)^{n-x} $$
@@ -132,8 +133,8 @@ barplot(dbinom(0:50, size = 50, p = 0.7), main = "Binom(50, 0.10)")
 
 ## Teste Binomial
 
-Uma vez que a variável em questão segue a *distribuição binomial*,
-podemos avaliar se frequencia observada diferencia-se do esperado
+Uma vez que a variável em questão segue uma *distribuição binomial*,
+podemos avaliar se frequência observada diferencia-se do esperado
 usando um **teste binomial**.
 
 ```{r binomTestDoc, eval = FALSE}
@@ -177,8 +178,9 @@ sum(probs[marked])
 
 Após a segunda coleta de amostras, os pesquisadores observaram mais
 11 casos de hipoproteinemia entre as 15 amostras coletadas. Após
-reunir as amostras, qual a frequêcia de hipoproteinemia observada?
-Os pesquisadores constataram diferenças significativas?
+reunir as amostras, qual a frequência de hipoproteinemia observada?
+Os pesquisadores constataram diferenças significativas da
+proporção esperada?
 
 ***
 
@@ -191,14 +193,14 @@ binom.test(x, n, p = 0.45)
 
 ## Questão (2)
 
-Qual foi o *Odds-Ratio* ou risco relativo de hipoproteinemia em
-relação ao esperado?
+Qual foi o *Odds-Ratio* (ou risco relativo) de hipoproteinemia
+em relação ao esperado?
 
 $$
 \begin{aligned}
-	O(p) & = p / (1 - p) \\
-	OR   & = \dfrac{O(p_{o})}{O(p_{e})} \\
-	     & = \dfrac{p_{o} / (1 - p_{o})}{p_{e} / (1 - p_{e})}
+    Odds(p) & = p / (1 - p) \\
+    OR      & = \dfrac{Odds(p_{o})}{Odds(p_{e})} \\
+    OR      & = \dfrac{p_{o} / (1 - p_{o})}{p_{e} / (1 - p_{e})}
 \end{aligned}
 $$
 
@@ -233,10 +235,11 @@ arrows(1,  p_o + c(-0.02, 0.02), 1, cnfint, angle=90)
 
 ## Questão (4)
 
-A hipoproteinemia ocorre com frequência associada a anemia, os
-pesquisadores decidiram avaliar se anemia também estava alterada
-na amostra. Dado a tabela em anexo, avalie se houve mudança em
-relação a proporção de anemicos esperados (35\%). Qual a conclusão?
+Tendo em vista que a hipoproteinemia ocorre geralmente associada
+a anemia, os pesquisadores decidiram avaliar se anemia também
+estava alterada na amostra. Utilizando a tabela abaixo, avalie
+se houve mudança em relação a proporção de anêmicos esperados
+(35\%). Qual a conclusão?
 
 ```{r loadCFTR}
 cftr <- read.table('cftr-ex.tsv', header = T)
@@ -249,32 +252,34 @@ table(cftr$anemia)
 binom.test(table(cftr$anemia), p = 1 - 0.35)
 ```
 
-## Sua vez...
+## Questões
 
-5. Dada uma variável $x$ corresponde ao número de sucessos em uma série de
-50 experimentos de Bernoulli com probabilidade de sucesso 30\%. Calcule:
-	- $P(x = 15)$, $P(x >= 15)$, e $P(x < 15).
-	- $P(15 < x <= 35)$, ilustre num gráfico da distribuição àrea selecionada.
-	- Quantiles $x_{0.025}$ e $x_{0.975}$.
-6. Qual a frequência do sexo e responsta ao tratamento (*response*) na
-amostra de **cftr**?
-7. A amostra apresenta uma proporção similar de homens e mulheres?
+5. Dada uma variável $x$ corresponde ao número de sucessos
+   em uma série de 50 experimentos de Bernoulli cuja
+   probabilidade de sucesso é 30\%. Calcule:
+    - $P(x = 15)$, $P(x >= 15)$, e $P(x < 15)$.
+    - $P(15 < x <= 35)$, ilustre num gráfico da distribuição
+      a área selecionada.
+    - Quantis $x_{0.025}$ e $x_{0.975}$.
+6. Qual a frequência do sexo (`sexo`) e tipo de resposta
+   ao tratamento (`response`) na amostra da tabela (`cftr`)?
+7. A amostra apresenta uma proporção similar de homens e
+   mulheres?
 
 ***
 
-$P(x = 15)$, $P(x >= 15)$, e $P(x < 15)$ ?
+- $P(x = 15)$, $P(x >= 15)$, e $P(x < 15)$ ?
 
 ```{r propTestEx5A}
-dbinom(15, 50, 0.3)
-## sum(dbinom(15:50, 50, 0.3))
-pbinom(14, 50, 0.3)
-## sum(dbinom(0:14,  50, 0.3))
+dbinom(15, 50, 0.3) ## ou sum(dbinom(15:50, 50, 0.3))
+pbinom(14, 50, 0.3) ## ou sum(dbinom(0:14,  50, 0.3))
 pbinom(14, 50, 0.3, lower.tail = F)
 ```
 
 ***
 
-$P(15 < x <= 35)$, ilustre num gráfico da distribuição a àrea selecionada.
+- $P(15 < x <= 35)$, ilustre num gráfico da distribuição
+  a área selecionada.
 
 ```{r propTestEx5B, fig.height = 4.5}
 ## sum(dbinom(9:25, size = 50, p = 0.3))
@@ -284,8 +289,7 @@ barplot(dbinom(0:50, 50, 0.3), col = (0:50 > 10) & (0:50 <= 20))
 
 ***
 
-Quantiles $x_{0.025}$ e $x_{0.975}$.
-
+- Quantis $x_{0.025}$ e $x_{0.975}$.
 
 ```{r propTestEx5C}
 qbinom(c(0.025, 0.975), 50, 0.3)
@@ -293,8 +297,8 @@ qbinom(c(0.025, 0.975), 50, 0.3)
 
 ***
 
-Qual a frequência do sexo e responsta ao tratamento (*response*) na
-amostra de **cftr**?
+Qual a frequência do sexo (`sexo`) e tipo de resposta
+ao tratamento (`response`) na amostra da tabela (`cftr`)?
 
 ```{r propTesteEx6}
 prop.table(table(cftr$sexo))
@@ -303,7 +307,8 @@ prop.table(table(cftr$response))
 
 ***
 
-A amostra apresenta uma proporção similar de homens e mulheres?
+A amostra apresenta uma proporção similar de homens e
+mulheres?
 
 ```{r propTestEx7}
 binom.test(table(cftr$sexo))
@@ -313,11 +318,11 @@ binom.test(table(cftr$sexo))
 
 ## Uma questão de independência
 
-Ao pesquisar os sintomas de *Fibrose Cistíca*, os pesquisadores
+Ao pesquisar os sintomas de *Fibrose Cística*, os pesquisadores
 constataram que *anemia* geralmente acompanha os pacientes com
-*hipoproteinemia*. Sendo a ocorrência de anemia muito mais comun
+*hipoproteinemia*. Sendo a ocorrência de anemia muito mais comum
 entre pacientes com *hipoproteinemia*. Na amostra estudada, eles
-observaram a seguinte tabela de confunsão:
+observaram a seguinte tabela de confusão (ou contingência):
 
 -----------------------------
                  Anemia
@@ -330,7 +335,7 @@ Hipoproteinemia     Não  Sim
 
 \begin{center}
   \usebeamerfont*{frametitle}
-  A anemia é distribuida independentemente da hipoproteinemia?
+  A anemia é distribuída independentemente da hipoproteinemia?
 \end{center}
 
 ## Avaliando o problema
@@ -339,7 +344,7 @@ Hipoproteinemia     Não  Sim
 
 - Qual Tamanho da amostra?
 - Quais as variáveis em questão?
-- As variáveis são numérica ou categorica?
+- As variáveis são numérica ou categórica?
 - Descreva o problema estatístico em questão.
 
 ## Avaliando o problema
@@ -349,8 +354,8 @@ Hipoproteinemia     Não  Sim
 - Qual Tamanho da amostra? **25**
 - Quais as variáveis em questão?
   **presença de hipoproteinemia e anemia**
-- As variáveis são numérica ou categorica?
-  **ambas categoricas, com duas respostas**2
+- As variáveis são numérica ou categórica?
+  **ambas categóricas, com duas respostas**2
 - Descreva o problema estatístico em questão.
   **deseja-se avaliar se o conhecimento da presença de anemia
   afeta a chance do individuo apresentar hipoproteinemia**
@@ -358,7 +363,7 @@ Hipoproteinemia     Não  Sim
 ## Teste de Fisher ##
 
 Uma vez que desejamos avaliar a independência entre duas
-variáveis catergoricas com duas possíveis respostas, podemos
+variáveis categóricas com duas possíveis respostas, podemos
 utilizar o **teste de Fisher**.
 
 $$ Ho: P(B|A) = P(B); ~~ Ha: P(B|A) \neq P(B) $$
@@ -385,8 +390,8 @@ $$ Ho: P(B|A) = P(B); ~~ Ha: P(B|A) \neq P(B) $$
 
 ```{r contigencyTable}
 table <- matrix(c(2, 11, 6, 7), nrow=2,
-               dimnames = list("hipoproteinemia" = c("Não", "Sim"),
-                               "anemia"          = c("Não", "Sim")))
+               dimnames = list("hipoproteinemia"=c("Não", "Sim"),
+                               "anemia"         =c("Não", "Sim")))
 addmargins(table)
 ```
 
@@ -395,8 +400,8 @@ addmargins(table)
 ```{r contigencyTablePlot}
 par(mfrow=c(1, 2))
 mosaicplot(table)
-barplot(table, beside=TRUE, xlab = "Hipoproteinemia",
-        legend=paste("Anemia: ", rownames(table)))
+barplot(table, beside=TRUE, col=1:2, xlab = "Hipoproteinemia")
+legend("topright", rownames(table), fill=1:2, title="Anemia")
 ```
 
 ***
@@ -409,7 +414,7 @@ fisher.test(table)
 
 Os pesquisadores também acreditam que a presença de *hipoproteinemia*
 está associado ao *risco* de resposta adversa ao tratamento. O risco é
-dividido em três clases (I, II, e III). Ao avaliar os pacientes
+dividido em três classes (I, II, e III). Ao avaliar os pacientes
 estudados, obtiveram a seguinte tabla de confusão:
 
 --------------------------------
@@ -430,14 +435,14 @@ Resposta              Não  Sim
 
 ## Teste de Qui-quadrado
 
-Neste caso, uma da variavéis em questão possui três possíveis
+Neste caso, uma das variáveis em questão possui três possíveis
 respostas, não sendo mais adequado utilizar o **teste de Fisher**,
 no lugar podemos utilizar o **teste de Qui-quadrada** para avaliar
 a independência.
 
 $$ Ho: P(B|A) = P(B); ~~ Ha: P(B|A) \neq P(B) $$
 
-O teste usa a dsitribuição qui-quadrada ou $\chi^2$ para avaliar
+O teste usa a distribuição qui-quadrada ou $\chi^2$ para avaliar
 o teste.
 
 $$ \chi^2 = \sum_i \dfrac{(O_i - E_i)^2}{E_i} $$
@@ -508,18 +513,284 @@ legend("topleft", rownames(obs), fill = 1:3, title = "Resposta")
 ## Quando usar Fisher ou Qui-quadrado?
 
   - Mais indicado **Teste de Fisher**:
-	- Tabela de contigência 2x2.
-	- Preferido para pequenas amostragens.
+    - Tabela de contingência 2x2.
+    - Preferido para pequenas amostragens.
   - Mais indicado **Qui-quadrado**:
-	- alguma das variáveis possui 3 ou mais categorias.
-	- o tamanho amostral maior do que 1000.
+    - alguma das variáveis possui 3 ou mais categorias.
+    - o tamanho amostral maior do que 1000.
 
-## Exercícios
+# Exercícios - Teste de Independência
 
-## Resolução
+## Quesstão (1)
+
+Nos pacientes de Fibrose Cística coletadas, podemos investigar se existe
+associação entre anemia (`anemia`) e hipoproteinemia (`hipoptr`). Usando
+a tabela `cftr-ex.tsv` faça:
+
+- A tabela de confusão (ou contingência) entre anemia e hipoproteinemia.
+- Represente graficamente está distribuição.
+- Existe evidência de associação entre as variáveis? Qual a sua conclusão.
+
+```{r loadFCData}
+## Carregar a tabela
+cf <- read.table('cftr-ex.tsv', header = T)
+```
+
+***
+
+- A tabela de confusão (ou contingência) entre anemia e hipoproteinemia.
+
+```{r idpEx1A}
+ctg <- table(cf$anemia, cf$hipoptr)
+## ctg <- xtabs(~anemia+hipoptr, data = cf)
+addmargins(ctg)
+```
+
+***
+
+- Represente graficamente está distribuição.
+
+```{r idpEx1B, fig.height = 4.5}
+barplot(ctg, main = "Observado", beside = T, col = 1:2)
+legend("topleft", rownames(ctg), fill = 1:2, title="anemia")
+```
+
+***
+
+- Represente graficamente está distribuição.
+
+```{r idpEx1BExt, fig.height = 4.5}
+exp <- rowSums(ctg) %*% t(colSums(ctg)) / sum(ctg)
+
+par(mfrow = c(1, 2))
+barplot(ctg, main = "Observado", beside = T, col = 1:2)
+legend("topleft", rownames(ctg), fill = 1:2, title="anemia")
+
+barplot(exp, main = "Esperado", beside = T, col = 1:2)
+legend("topleft", rownames(ctg), fill = 1:2, title="anemia")
+```
+
+***
+
+- Existe evidência de associação entre as variáveis? Qual a
+  sua conclusão.
+
+```{r idpEx1C}
+fisher.test(ctg)
+```
+
+## Questão (2)
+
+Da mesma forma, os pesquisadores desejam investigar a associação entre
+o tipo de resposta ao tratamento (`response`).
+
+- Gere a tabela de contingência entre o tipo de resposta ao tratamento e
+  hipoproteinemia.
+- Represente graficamente a distribuição.
+- As variáveis são distribuídas independentemente? Qual a sua conclusão.
+
+***
+
+- Gere a tabela de contingência entre o tipo de resposta ao tratamento e
+  hipoproteinemia.
+
+```{r idpEx2A}
+ctg <- table(cf$response, cf$hipoptr)
+addmargins(ctg)
+```
+
+***
+
+- Represente graficamente a distribuição.
+
+```{r idpEx2B, fig.height = 4.5}
+exp <- rowSums(ctg) %*% t(colSums(ctg)) / sum(ctg)
+
+par(mfrow = c(1, 2))
+barplot(ctg, main = "Observado", beside = T, col = 1:3)
+legend("topleft", rownames(ctg), fill = 1:3, title="anemia")
+
+barplot(exp, main = "Esperado", beside = T, col = 1:3)
+legend("topleft", rownames(ctg), fill = 1:3, title="anemia")
+```
+
+***
+
+- As variáveis são distribuídas independentemente? Qual a sua conclusão.
+
+```{r idpEx2C}
+chisq.test(ctg)
+```
+## Questão (3)
+
+Para investigar o excesso de hipoproteinemia na amostra, os pesquisadores
+levantaram duas mutações de interesse (*mut_a* e *mut_b*). O primeiro passo
+para toda pesquisa de genética é investigar se as mutações estão em
+equilíbrio de Hardy-Weinberg. Para cada mutação calcule a frequência alélica
+e genotípica (esperada e observada) e avalie se a mutação está em equilíbrio.
+
+***
+
+### Mutação A
+
+```{r idpEx3A}
+(obs <- table(cf$mut_a))
+(p   <- (obs[1] * 2 + obs[2]) / (2 * sum(obs)))
+(exp <- c(p^2, 2 * p * (1-p), (1-p)^2))
+```
+
+***
+
+```{r idpEx3AChisq, fig.height = 3.8}
+chisq.test(obs, p = exp)
+barplot(rbind(obs, exp * sum(obs)), beside = T,
+        legend = c("Observado", "Esperado"))
+```
+
+***
+
+### Por que df = 2?
+
+Quando avaliamos o equilíbrio de Hardy-Weinberg, verificamos se os alelos
+de um cromossomo são independentes do outro. Portanto avaliamos a seguinte
+tabela de contingência.
+
+| paterno\\materno | a    | A    |
+| --------------:  | ---: | ---: |
+| a                | 19.0 | 12.5 |
+| A                | 12.5 |  6.0 |
+
+Que podemos simplificar para:
+
+|           | aa    | Aa          | AA        |
+|---------: | ----: | ----------: | --------: |
+| Observado | 19    | 25          | 6         |
+| Esperado  | $p^2$ | $2*p*(1-p)$ | $(1-p)^2$ |
+
+***
+
+### Mutação B
+
+```{r idpEx3B}
+(obs <- table(cf$mut_b))
+(p   <- (obs[1] * 2 + obs[2]) / (2 * sum(obs)))
+(exp <- c(p^2, 2 * p * (1-p), (1-p)^2))
+```
+
+***
+
+```{r idpEx3BChisq}
+chisq.test(obs, p = exp)
+```
+
+## Questões
+
+5. Agora na amostra completa, avalie se existe associação da presença de
+   anemia com a hipoproteinemia, tipo de resposta e com os marcadores
+   estudados. Ilustre os resultados obtidos.
+6. Constatando que ambas as variantes investigadas estão em equilíbrio
+   de Hardy-Weinberg, os pesquisadores decidiram avaliar a associação
+   delas com o hipoproteinemia. Gere a tabela de contingência entre
+   hipoproteinemia e cada marcador e avalie para cada mutação ilustrando
+   os resultados:
+    - Associação com os genótipos
+    - Associação com modelo de efeito recessivo e dominante.
+
+***
+
+### Questão (5)
+
+```{r idpEx5A}
+chisq.test(table(cf$anemia, cf$hipoptr))
+chisq.test(table(cf$anemia, cf$response))
+```
+
+***
+
+```{r idpEx5B}
+chisq.test(table(cf$anemia, cf$mut_a))
+chisq.test(table(cf$anemia, cf$mut_b))
+```
+
+***
+
+### Questão (6)
+
+```{r idpEx6A1}
+(ctgA <- table(cf$hipoptr, cf$mut_a))
+chisq.test(ctgA)
+```
+
+***
+
+```{r idpEx6A2}
+(ctgB <- table(cf$hipoptr, cf$mut_b))
+chisq.test(ctgB)
+```
+
+***
+
+```{r idpEx6AFig, fig.height = 5}
+par(mfrow = c(1, 2))
+
+barplot(ctgA, beside=T, col=1:3)
+legend("topright", title="Genótipo", rownames(ctg), fill = 1:3)
+
+barplot(ctgB, beside=T, col=1:3)
+legend("topright", title="Genótipo", rownames(ctg), fill = 1:3)
+```
+
+***
+
+```{r idpEx6B1}
+ctgADomFT <- fisher.test(table(cf$hipoptr, cf$mut_a != "AA"))
+ctgARecFT <- fisher.test(table(cf$hipoptr, cf$mut_a == "aa"))
+
+with(ctgADomFT, c(estimate, conf.int, pval=p.value))
+with(ctgARecFT, c(estimate, conf.int, pval=p.value))
+```
+
+***
+
+
+```{r idpEx6B2}
+ctgBDomFT <- fisher.test(table(cf$hipoptr, cf$mut_b != "BB"))
+ctgBRecFT <- fisher.test(table(cf$hipoptr, cf$mut_b == "bb"))
+
+with(ctgBDomFT, c(estimate, conf.int, pval=p.value))
+with(ctgBRecFT, c(estimate, conf.int, pval=p.value))
+```
+
+***
+
+```{r ipEx6BFig, change_size="\\footnotesize", fig.height=3.5}
+par(mfrow = c(1, 2))
+plot(1:2, c(ctgADomFT$estimate, ctgARecFT$estimate), xlab="", ylab="OR",
+     xlim = c(0.5, 2.5), ylim = c(0, 4), xaxt = "n")
+abline(h=1)
+arrows(1:2, c(ctgADomFT$conf.int[1], ctgARecFT$conf.int[1]),
+       1:2, c(ctgADomFT$conf.int[2], ctgARecFT$conf.int[2]),
+       code = 3, angle = 90)
+axis(1, at=1:2, labels = c("Dom", "Rec"))
+plot(1:2, c(ctgADomFT$estimate, ctgBRecFT$estimate), xlab="", ylab="OR",
+     xlim = c(0.5, 2.5), ylim = c(0, 9), xaxt = "n")
+abline(h=1)
+arrows(1:2, c(ctgBDomFT$conf.int[1], ctgBRecFT$conf.int[1]),
+       1:2, c(ctgBDomFT$conf.int[2], ctgBRecFT$conf.int[2]),
+       code = 3, angle = 90)
+axis(1, at=1:2, labels = c("Dom", "Rec"))
+```
 
 # Ao Final...
 
 ## O que vimos?
+
+- Aprendemos a reconhecer variáveis categóricas.
+- Identificar quando e como aplicar teste binomial.
+- Identificar quando e como aplicar teste de independência.
+- Saber reconhecer qual teste de independência mais adequado.
+  (**Fisher** ou **Qui-quadrado**).
+- Reconhecer a pergunta estatística de cada teste.
+- Ilustrar os resultados.
 
 # Até a próxima
