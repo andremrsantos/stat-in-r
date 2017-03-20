@@ -488,7 +488,9 @@ legend("topright", paste("df =", dfs), lty=1, col=dfs, bg="white")
 ***
 
 ```{r chisqTestExampleManual}
-obs  <- matrix(c(0, 3, 3, 6, 10, 3), nrow = 3)
+obs  <- matrix(c(0, 3, 3, 6, 10, 3), nrow = 3,
+               dimnames = list("Resposta" = c("I", "II", "III"),
+                               "Hipoproteinemia" = c("Não", "Sim")))
 exp  <- rowSums(obs) %*% t(colSums(obs)) / sum(obs)
 (chi <- sum((obs-exp)^2/exp))
 df   <- (nrow(obs) - 1) * (ncol(obs) - 1)
@@ -497,9 +499,20 @@ df   <- (nrow(obs) - 1) * (ncol(obs) - 1)
 
 ***
 
-```{r chisqTestExampleFunction}
+```{r chisqTestExampleFunction, warning = FALSE, fig.height = 4}
 chisq.test(obs)
+barplot(obs, beside = T, col = 1:3)
+legend("topleft", rownames(obs), fill = 1:3, title = "Resposta")
 ```
+
+## Quando usar Fisher ou Qui-quadrado?
+
+  - Mais indicado **Teste de Fisher**:
+	- Tabela de contigência 2x2.
+	- Preferido para pequenas amostragens.
+  - Mais indicado **Qui-quadrado**:
+	- alguma das variáveis possui 3 ou mais categorias.
+	- o tamanho amostral maior do que 1000.
 
 ## Exercícios
 
