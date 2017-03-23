@@ -7,17 +7,20 @@ fontsize: 10pt
 output:
   beamer_presentation:
     theme: "metropolis"
+    latex_engine: xelatex
 ---
 
 ```{r setup, include = FALSE}
 knitr::knit_hooks$set(change_size = function(before, options, envir) {
     if (before) {
+
         return(paste(options$change_size))
     }
 })
 
 knitr::opts_chunk$set(prompt = TRUE, warning = FALSE, change_size='\\small')
 
+## ## Generate CF table
 ## hwfq     <- function(p) c(p^2, 2 * p * (1-p), (1-p)^2)
 ## n        <- 50
 ## amostra  <- sprintf("S%02d", 1:n)
@@ -33,7 +36,7 @@ knitr::opts_chunk$set(prompt = TRUE, warning = FALSE, change_size='\\small')
 ##                   sample(c("AA", "Aa", "aa"), n, replace = T, prob = hwfq(0.1))
 ## mut_b    <- ifelse(hipoptr == "Sim",
 ##                   sample(c("BB", "Bb", "bb"), n, replace = T, prob = hwfq(0.1)),
-##                   sample(c("BB", "Bb", "bb"), n, replace = T, prob = hwfq(0.25))
+##                   sample(c("BB", "Bb", "bb"), n, replace = T, prob = hwfq(0.25)))
 ## write.table(
 ##     data.frame(amostra = amostra,
 ##                sexo    = sexo,
