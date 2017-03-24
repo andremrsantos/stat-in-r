@@ -1,5 +1,5 @@
 ---
-title:    "Correlação e Regressão Linear"
+title:    "Correlação"
 subtitle: "Bioestatística em R"
 author:   "André M Ribeiro-dos-Santos"
 date:     "`r format(Sys.Date(), '%d de %m, %Y')`"
@@ -404,8 +404,14 @@ cor.test(sins, chl, method="spearman")
 db <- read.table('db.tsv', header=T)
 ```
 
-# Regressão Linear
+# Ao final ...
 
-## Imagine...
+## O que vimos?
 
-## Formulas
+- Avaliar a associação entre medidas quantitativas.
+- Reconhecer diferentes tipos de correlação.
+- Ilustrar a relação entre medidas quantitativas.
+- Reconhecer quando aplicar Pearson e Spearman.
+- Conhecer principais transformações e quando aplicá-las.
+
+# Até a próxima

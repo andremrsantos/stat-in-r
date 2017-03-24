@@ -1,0 +1,49 @@
+---
+title:    "Regressão Linear"
+subtitle: "Bioestatística em R"
+author:   "André M Ribeiro-dos-Santos"
+date:     "`r format(Sys.Date(), '%d de %m, %Y')`"
+fontsize: 10pt
+output:
+  beamer_presentation:
+    theme: "metropolis"
+    latex_engine: xelatex
+---
+
+```{r setup, include = FALSE}
+on_change_size <- function(before, options, envir) {
+    if (before)
+        return(paste(options$change_size))
+}
+
+knitr::knit_hooks$set(change_size = on_change_size)
+knitr::opts_chunk$set(prompt = TRUE,
+                      warning = FALSE,
+                      dev.args=list(pointsize=18),
+                      change_size='\\small')
+```
+
+## Objetivos
+
+- Modelar medidas através de uma regressão linear.
+- Explicar a relação entre variáveis.
+- Ilustrar a regressão e resíduos.
+- Comparar diferente regressões.
+
+# Regressão Linear
+
+## Imagine...
+
+## Avaliando o problema
+
+## Formulas
+
+## Regressão Linear
+
+## Exercícios - Regressão Linear
+
+# Ao final ...
+
+## O que vimos?
+
+# Até a próxima
