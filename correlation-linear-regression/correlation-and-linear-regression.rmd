@@ -21,6 +21,24 @@ knitr::opts_chunk$set(prompt = TRUE,
                       warning = FALSE,
                       dev.args=list(pointsize=18),
                       change_size='\\small')
+## ## Generate Example data
+## hwfq <- function(p) c(p^2, 2*p*(1-p), (1-p)^2)
+## n    <- 50
+## type     <- sample(c("I", "II"), n, replace=T)
+## sen_ins  <- floor(rnorm(n, 250 + 50 * (type=="II"), 50))
+## fat_acid <- 15 + sen_ins/100 + rnorm(n)
+## chl      <- rnorm(n, mean = 120 + (sen_ins/250 - 1.75)^-1, sd = .15)
+## bp       <- rnorm(n, 90, 10)
+## bmi      <- rnorm(n, 32, 6)
+## enos     <- sample(c("aa", "Aa", "AA"), n, replace = T, prob = hwfq(0.15))
+## enos_dom <- enos == "aa"
+## lo_hrt_atk <- (-4 * scale(sen_ins) + 2 * scale(bp) +
+##                2 * enos_dom + (1 + enos_dom) * scale(bmi) +
+##                rnorm(n))
+## hrt_attack <- ifelse(plogis(lo_hrt_atk) > .5, "Sim", "Não")
+##
+## db <- data.frame(type, sen_ins, fat_acid, chl, bp, bmi, enos, hrt_attack)
+## write.table(db, 'db.tsv', quote=F, row.names=F)
 ```
 
 ## Objetivos
@@ -50,16 +68,16 @@ medido a sensibilidade à insulina e composição de ácidos graxos de 10 pacien
 \end{center}
 
 
-```{r corExample, echo = FALSE}
-n <- 10; hf <- ceiling(n/2)
-x <- c(278, 496, 294, 434, 226, 319, 329, 162, 325, 351)
-# y <- x/100 + 15 + rnorm(10, sd=.5)
-y <- c(17.71, 20.06, 17.35, 19.49, 17.21, 18.76, 18.23, 16.28, 18.04, 18.35)
+```{r corExTable, echo = FALSE}
+sins  <- c(183, 232, 166, 258, 213, 246, 256, 372, 367, 301)
+facid <- c(15.91, 17.04, 16.22, 18.93, 17.36, 18.12, 17.90, 17.89, 18.55, 17.15)
+name  <- c("Sensibilidade à Insulina", "Ácidos Graxos (%)")
 
-knitr::kable(data.frame(x[1:hf], y[1:hf], x[(hf+1):n], y[(hf+1):n]),
-             col.names = rep(c("Insulin sensitivity",
-                               "Fatty Acids (%)"), 2),
-             digits = 2)
+knitr::kable(cbind(sins[1:5], facid[1:5], sins[6:10], facid[6:10]),
+             col.names = rep(name, 2), digits = 2,
+             caption = paste("Medidas de sensibilidade à insulina e composição",
+                             "de ácido graxos em diabéticos"))
+set.seed(050591)
 ```
 
 ## Avaliando o problema
@@ -82,14 +100,14 @@ knitr::kable(data.frame(x[1:hf], y[1:hf], x[(hf+1):n], y[(hf+1):n]),
 
 - Qual a distribuição das medidas? E como se relacionam?
 
-```{r corDist, fig.height = 4}
-y <- c(278, 496, 294, 434, 226, 319, 329, 162, 325, 351)
-x <- c(17.71, 20.06, 17.35, 19.49, 17.21, 18.76,
-       18.23, 16.28, 18.04, 18.35)
-
+```{r corExFig, fig.height = 4}
+sins  <- c(183, 232, 166, 258, 213, 246, 256, 372, 367, 301)
+facid <- c(15.91, 17.04, 16.22, 18.93, 17.36, 18.12, 17.90,
+           17.89, 18.55, 17.15)
 par(mfrow=c(1,3))
-hist(x); hist(y)
-plot(x, y)
+hist(sins)
+hist(facid)
+plot(sins, facid)
 ```
 
 ## Correlação de Pearson
@@ -100,7 +118,8 @@ correlação de Pearson ($r$).
 
 $$
     r = \dfrac{cov_{xy}}{s_x * s_y} =
-        \dfrac{\sum (x-\bar{x})(y-\bar{y})}{\sum(x-\hat{x}) * \sum*y-\hat{y})}
+        \dfrac{\sum (x-\bar{x})(y-\bar{y})}
+              {\sum(x-\hat{x}) * \sum*y-\hat{y})}
 $$
 
 Uma propriedade interessante deste coeficiente é que $r^2$ corresponde ao
@@ -112,16 +131,36 @@ percentual da variabilidade em y explicada por x (ou vice-versa).
 
 O *coeficiente de correlação* ($r$) assume valores entre -1 e 1, indicando uma
 correlação inversa em valores negativos, direta para valores positivos e zero
-quando não há correlação.
+quando não há correlação [^1].
 
-```{r corCoefficient, echo = F, fig.height=6}
+| **Coeficiente de Correlação** | **Interpretação**     |
+| ----------------------------: | :-------------------- |
+| .90 to 1.00 (−.90 to −1.00)   | Altíssima correlação  |
+| .70 to .90 (−.70 to −.90)     | Alta correlação       |
+| .50 to .70 (−.50 to −.70)     | Moderada correlação   |
+| .30 to .50 (−.30 to −.50)     | Baixa correlação      |
+| .00 to .30 (.00 to −.30)      | Praticamente nula     |
+Table: Interpretação dos valores do coeficiente de correlação.
+
+
+[^1]: Mukaka M. A guide to appropriate use of Correlation coefficient in medical
+      research. Malawi Medical Journal : The Journal of Medical Association of
+      Malawi. 2012;24(3):69-71.
+
+***
+
+```{r corCoefEx, echo=F, fig.align='center', fig.width=6.5, fig.height=6.5}
 par(mfrow = c(2,2), oma=rep(1,4), mar=rep(2,4))
+
 plot(1:10, 1:10, main = "r = 1", xlab="x", ylab="y")
 abline(0, 1)
+
 plot(1:10, 10-(1:10), main = "r = -1", xlab="x", ylab="y")
 abline(10, -1)
+
 plot(1:10, runif(10, 1, 10), main = "r = 0", xlab="x", ylab="y")
 abline(6, 0)
+
 plot(1:10,  2 * (1:10)^2 + (1:10)/2, main = "non-linear", xlab="x", ylab="y")
 lines(1:10, 2 * (1:10)^2 + (1:10)/2)
 ```
@@ -133,8 +172,8 @@ lines(1:10, 2 * (1:10)^2 + (1:10)/2)
 ## Correlation, Variance and Covariance (Matrices)
 ## Description:
 ##      ‘var’, ‘cov’ and ‘cor’ compute the variance of ‘x’ and the
-##      covariance or correlation of ‘x’ and ‘y’ if these are vectors.  If
-##      ‘x’ and ‘y’ are matrices then the covariances (or correlations)
+##      covariance or correlation of ‘x’ and ‘y’ if these are vectors.
+##      If ‘x’ and ‘y’ are matrices then the covariances (or correlations)
 ##      between the columns of ‘x’ and the columns of ‘y’ are computed.
 ## Usage:
 ##      var(x, y = NULL, na.rm = FALSE, use)
@@ -147,9 +186,9 @@ lines(1:10, 2 * (1:10)^2 + (1:10)/2)
 ***
 
 ```{r corUseEx}
-cov(x, y) / sqrt(var(x) * var(y))
-cor(x, y)
-cor(x, y)^2
+cov(sins, facid) /sqrt(var(sins) * var(facid))
+cor(sins, facid)
+cor(sins, facid)^2
 ```
 
 ## Teste de Correlação
@@ -158,10 +197,6 @@ Assumindo que $r$ apresenta uma distribuição normal, podemos testar a
 significância da correlação observada.
 
 $$ Ho: r = 0; ~~ Ha: R \neq 0 $$
-
-$$ t = \dfrac{r}{EP_r} = r\sqrt \dfrac{n -2}{1 - r^2} $$
-
-***
 
 ```{r corTestDoc, eval = FALSE}
 ?cor.test
@@ -176,23 +211,23 @@ $$ t = \dfrac{r}{EP_r} = r\sqrt \dfrac{n -2}{1 - r^2} $$
 ##               method = c("pearson", "kendall", "spearman"),
 ##               exact = NULL, conf.level = 0.95,
 ##               continuity = FALSE, ...)
-##      ## S3 method for class 'formula'
-##      cor.test(formula, data, subset, na.action, ...)
 ```
 
 ***
 
 ```{r corTestEx}
-cor.test(x, y)
+cor.test(sins, facid)
 ```
 
-## Erros comuns
+***
+
+### Erros comuns
 
 1. Correlação não implica em causa.
 2. Focar no P-value, no lugar do coeficiente.
 3. Assumir correlação sem  plotar relação.
 
-```{r ascombeEx, echo = FALSE, fig.height = 5}
+```{r ascombeEx, echo=F, fig.align='center', fig.width=6, fig.height=4.5}
 par(mfrow = c(2,2), oma=rep(1,4), mar=rep(2,4))
 for (i in 1:4) {
     x = anscombe[, paste("x", i, sep="")];
@@ -205,11 +240,169 @@ for (i in 1:4) {
 
 ## Exercícios - Correlação de Pearson
 
-## Parece que o jogo virou
+1. xxx
+2. xxx
+3. xxx
+4. xxx
+
+```{r corSpearmanLoadData, eval = FALSE}
+db <- read.table('db.tsv', header=T)
+```
+
+## Imagine...
+
+Desejando estudar mais a fundo a relação entre sensibilidade à insulina e a
+composição lipídica dos pacientes de diabetes, eles decidiram investigar a
+concentração de colesterol no sangue. Na mesma amostra, os pesquisadores
+obtiveram os dados da concentração de colesterol em jêjum.
+
+\begin{center}
+  \usebeamerfont*{frametitle}
+  A variação da sensibilidade à insulina está relacionada a
+  concentração de colesterol no sangue?
+\end{center}
+
+```{r corSpearmanExTable, echo=FALSE}
+chl  <- c(118.98, 118.58, 118.99, 118.62, 118.78, 118.80,
+          118.78, 116.05, 116.35, 118.54)
+name <- c("Sensibilidade à insulina", "Colesterol")
+knitr::kable(cbind(sins[1:5], chl[1:5], chl[6:10], chl[6:10]),
+             col.names=rep(name,2),
+             caption=paste("Medida de sensibilidade a insulina e colesterol",
+                           "em pacientes"))
+```
+
+## Avaliando o problema
+
+- As medidas em questão são categóricas ou quantitativas?
+- Qual o tamanho da amostra?
+- Qual a hipótese sendo avaliada?
+- Qual a distribuição das medidas?
+
+***
+
+- As medidas em questão são categóricas ou quantitativas?
+  **Ambas são quantitativas**
+- Qual o tamanho da amostra?
+  **10 pacientes**
+- Qual a hipótese sendo avaliada?
+  **As medidas são relacionadas.**
+
+***
+
+- Qual a distribuição das medidas?
+
+```{r corSpearmanEx, fig.height=4.5}
+chl <- c(118.98, 118.58, 118.99, 118.62, 118.78, 118.80,
+         118.78, 116.05, 116.35, 118.54)
+par(mfrow = c(1, 3))
+hist(sins)
+hist(chl)
+plot(sins, chl)
+```
+
+## Quando os dados fogem a normalidade
+
+1. Transformação
+   * **Raiz quadrada** (right skew, non-zero) `sqrt(x)`
+   * **Logaritmica** (right skew, non-zero) `log(x)`
+   * **Power** (left skew) `x^2`
+   * **Exponential** (left skew) `exp(x)`
+   * Inverse (conveniência) `1/x` ou `x^-1`
+   * Z-scale (conveniência) `scale(x)`
+2. Estatística Não-Paramétrica (*rank*)
+
+***
+
+```{r varTransformation, echo = FALSE}
+norm  <- rnorm(50, mean = 25, sd = 5)
+right <- rnorm(50, mean = rlnorm(50, 3, 0.6), 3)
+left  <- rbeta(50, 5, 1)
+
+
+par(mfrow = c(3,3), oma=c(0, 0, 0, 0), mar=c(2,2,2,2))
+hist(norm)
+hist(norm/5)
+hist(scale(norm))
+
+hist(right)
+hist(log(right))
+hist(sqrt(right))
+
+hist(left)
+hist(left^2)
+hist(exp(left))
+```
+
+***
+
+Vamos, portanto aplicar uma transformação ao **colesterol** (`chl`) em busca
+de normalizar sua distribuição. Ela possui um forte *skew* para esquerda
+(*left skew*), podemos aplicar uma **potência** ou exponencial.
+
+```{r corSpearmanExVarTrans, fig.height=4}
+par(mfrow = c(1,3))
+hist(chl)
+hist(chl^2)
+hist(exp(chl))
+```
 
 ## Correlação de Spearman
 
+Quando não é possível corrigir o *skew* da amostra com uma transformação
+determinística, podemos recorrer à medidas não paramétricas como **rank**,
+a posição do valor quando todos os valores forem ordenados.
+
+Numa correlação deseja-se associar o aumento de uma variável ao aumento ou
+decrescimo de outra, ou seja estabelecer uma **relação monotônica**.
+
+
+```{r monotonicRelation, echo=FALSE, fig.height=4}
+x  <- runif(15, -10, 10)
+y1 <- -2 * x + 5 + rnorm(15, sd = 3)
+y2 <- exp(x/2) + rexp(15, rate = .25)
+y3 <- -x^2 + 2*x + 5 + rnorm(15, sd = 5)
+xs <- seq(-10, 10, .1)
+par(mfrow = c(1, 3))
+plot(x, y1, main = "Monotônica")
+lines(xs, -2*xs + 5)
+plot(x, y2, main = "Monotônica")
+lines(xs, exp(xs/2))
+plot(x, y3, main = "Não monotônica")
+lines(xs, -xs^2 + 2 * xs + 5)
+```
+
+***
+
+No lugar de associar os valores reais, podemos-se trabalhar com o **rank**.
+A partir da relação entre o rank de ambas variáveis é calculada a
+**corelação de spearman**.
+
+```{r corSpearmanRankTrans, fig.height=3}
+par(mfrow=c(1,4), mar = c(2, 2, 2, 2))
+plot(sins, chl, main = "sins vs chl")
+plot(sins, rank(sins), main="sins vs rank(sins)")
+plot(chl, rank(chl), main="chl vs rank(chl)")
+plot(rank(sins), rank(chl), , main="rank(sins) vs rank(chl)")
+```
+
+***
+
+```{r corTestSpearman}
+cor(sins, chl)
+cor(sins, chl, method = "spearman")
+cor.test(sins, chl, method="spearman")
+```
+
 ## Exercícios - Correlação de Spearman
+
+1. xxx
+2. xxx
+3. xxx
+
+```{r corSpearmanLoadData, eval = FALSE}
+db <- read.table('db.tsv', header=T)
+```
 
 # Regressão Linear
 
