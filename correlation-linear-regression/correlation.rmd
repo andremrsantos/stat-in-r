@@ -19,9 +19,10 @@ on_change_size <- function(before, options, envir) {
 knitr::knit_hooks$set(change_size = on_change_size)
 knitr::opts_chunk$set(prompt = TRUE,
                       warning = FALSE,
-                      dev.args=list(pointsize=18),
+                      dev.args=list(pointsize=17),
                       change_size='\\small')
-## ## Generate Example data
+set.seed(551991)
+## Generate Example data
 ## hwfq <- function(p) c(p^2, 2*p*(1-p), (1-p)^2)
 ## n    <- 50
 ## type     <- sample(c("I", "II"), n, replace=T)
@@ -32,12 +33,13 @@ knitr::opts_chunk$set(prompt = TRUE,
 ## bmi      <- rnorm(n, 32, 6)
 ## enos     <- sample(c("aa", "Aa", "AA"), n, replace = T, prob = hwfq(0.15))
 ## enos_dom <- enos == "aa"
+## m_rate   <- rnorm(n, 1800 + 50 * (1 + enos_dom) * scale(bmi) - 50 * scale(chl),
+##                   sd = 100)
 ## lo_hrt_atk <- (-4 * scale(sen_ins) + 2 * scale(bp) +
 ##                2 * enos_dom + (1 + enos_dom) * scale(bmi) +
 ##                rnorm(n))
 ## hrt_attack <- ifelse(plogis(lo_hrt_atk) > .5, "Sim", "Não")
-##
-## db <- data.frame(type, sen_ins, fat_acid, chl, bp, bmi, enos, hrt_attack)
+## db <- data.frame(type, sen_ins, fat_acid, chl, bp, bmi, enos, m_rate, hrt_attack)
 ## write.table(db, 'db.tsv', quote=F, row.names=F)
 ```
 
@@ -48,9 +50,6 @@ knitr::opts_chunk$set(prompt = TRUE,
 - Ilustrar a relação entre medidas quantitativas.
 - Reconhecer quando aplicar Pearson e Spearman.
 - Conhecer principais transformações e quando aplicá-las.
-- Modelar medidas através de uma regressão linear.
-- Ilustrar a regressão e resíduos.
-- Comparar diferente regressões.
 
 # Correlação
 
@@ -77,7 +76,6 @@ knitr::kable(cbind(sins[1:5], facid[1:5], sins[6:10], facid[6:10]),
              col.names = rep(name, 2), digits = 2,
              caption = paste("Medidas de sensibilidade à insulina e composição",
                              "de ácido graxos em diabéticos"))
-set.seed(050591)
 ```
 
 ## Avaliando o problema
@@ -141,7 +139,6 @@ quando não há correlação [^1].
 | .30 to .50 (−.30 to −.50)     | Baixa correlação      |
 | .00 to .30 (.00 to −.30)      | Praticamente nula     |
 Table: Interpretação dos valores do coeficiente de correlação.
-
 
 [^1]: Mukaka M. A guide to appropriate use of Correlation coefficient in medical
       research. Malawi Medical Journal : The Journal of Medical Association of
@@ -227,7 +224,7 @@ cor.test(sins, facid)
 2. Focar no P-value, no lugar do coeficiente.
 3. Assumir correlação sem  plotar relação.
 
-```{r ascombeEx, echo=F, fig.align='center', fig.width=6, fig.height=4.5}
+```{r ascombeEx, echo=F, fig.align='center', fig.height = 5.5}
 par(mfrow = c(2,2), oma=rep(1,4), mar=rep(2,4))
 for (i in 1:4) {
     x = anscombe[, paste("x", i, sep="")];
@@ -240,21 +237,86 @@ for (i in 1:4) {
 
 ## Exercícios - Correlação de Pearson
 
-1. xxx
-2. xxx
-3. xxx
-4. xxx
+Pesquisadores buscando avaliar a associação entre diferentes medidas clínicas
+em pacientes de diabetes. Durante o estudo, eles coletaram os dados de 50
+pacientes (disponíveis na tabela `db.tsv`). Sobre estes pacientes responda:
 
-```{r corSpearmanLoadData, eval = FALSE}
+1. Ilustre a relação entre sensibilidade à insulina (`sen_ins`) com o percentual
+   de ácido graxos (`fat_acid`), a taxa de colesterol (`chl`), pressão sanguinea
+   em repouso (`bp`) e taxa metabolica (`m_rate`).
+2. Alguma das relações a cima não poderia ser correlacionada por *Pearson*? Justifique
+3. Calcule a correlação para qual *Pearson* se aplica, e indique quais possuem
+   correlação significativa.
+4. Reflita sobre o $R^2$ das correlações a cima e explique o seu valor.
+
+```{r corPearsonLoadDataDemo}
 db <- read.table('db.tsv', header=T)
 ```
+
+***
+
+1. Ilustre a relação entre sensibilidade à insulina (`sen_ins`) com o percentual
+   de ácido graxos (`fat_acid`), a taxa de colesterol (`chl`), pressão sanguinea
+   em repouso (`bp`) e taxa metabolica (`m_rate`).
+
+```{r corPearsonEx1, fig.height = 3.5}
+par(mfrow = c(1,4), mar = c(2, 2, 2, 2))
+plot(fat_acid~sen_ins, data=db, main="Ácidos Graxos (%)")
+plot(chl~sen_ins, data=db, main="Teor de Colesterol")
+plot(bp~sen_ins, data=db, main="Pressão sanguínea\nem repouso")
+plot(m_rate~sen_ins, data=db, main="Taxa metabólica")
+```
+
+***
+
+2. Alguma das relações a cima não poderia ser correlacionada por *Pearson*? Justifique
+
+\begin{center}
+    Sensibilidade à insulina e o Teor de colesterol parece se relacionar de forma
+    não linear, portanto não sendo recomendado utilizar a *correlação de Pearson*.
+\end{center}
+
+```{r corPearsonEx2, ref.label="corPearsonEx1", echo=FALSE, fig.height = 3.5}
+```
+
+***
+
+3. Calcule a correlação para qual *Pearson* se aplica, e indique quais possuem
+   correlação significativa.
+
+```{r corPearsonEx3A}
+with(db, cor.test(fat_acid, sen_ins))
+```
+
+***
+
+```{r corPearsonEx3B}
+with(db, cor.test(bp, sen_ins))
+```
+
+***
+
+```{r corPearsonEx3C}
+with(db, cor.test(m_rate, sen_ins))
+```
+
+***
+
+4. Reflita sobre o $R^2$ das correlações a cima e explique o seu valor.
+
+```{r corPearsonEx4}
+with(db, cor(fat_acid, sen_ins))^2
+with(db, cor(bp, sen_ins))^2
+with(db, cor(m_rate, sen_ins))^2
+```
+
 
 ## Imagine...
 
 Desejando estudar mais a fundo a relação entre sensibilidade à insulina e a
 composição lipídica dos pacientes de diabetes, eles decidiram investigar a
 concentração de colesterol no sangue. Na mesma amostra, os pesquisadores
-obtiveram os dados da concentração de colesterol em jêjum.
+obtiveram os dados da concentração de colesterol em jejum.
 
 \begin{center}
   \usebeamerfont*{frametitle}
@@ -354,7 +416,7 @@ determinística, podemos recorrer à medidas não paramétricas como **rank**,
 a posição do valor quando todos os valores forem ordenados.
 
 Numa correlação deseja-se associar o aumento de uma variável ao aumento ou
-decrescimo de outra, ou seja estabelecer uma **relação monotônica**.
+decréscimo de outra, ou seja estabelecer uma **relação monotônica**.
 
 
 ```{r monotonicRelation, echo=FALSE, fig.height=4}
@@ -396,12 +458,53 @@ cor.test(sins, chl, method="spearman")
 
 ## Exercícios - Correlação de Spearman
 
-1. xxx
-2. xxx
-3. xxx
+1. Previamente, os pesquisadores constataram que sensibilidade à insulina
+   (`sen_ins`) e taxa de colesterol (`chl`) não apresentam uma relação linear.
+   Mas existe alguma correlação entre as medidas? Ilustre a relação.
+2. Tendo em vista que sensibilidade à insulina (`sen_ins`) possui uma forte
+   correlação com o percentual de ácido graxos (`fat_acid`). Avalie se
+   existe uma correlação entre o percentual de ácido graxos e a taxa de
+   colesterol (`chl`).
 
 ```{r corSpearmanLoadData, eval = FALSE}
 db <- read.table('db.tsv', header=T)
+```
+
+***
+
+1. Previamente, os pesquisadores constataram que sensibilidade à insulina
+   (`sen_ins`) e taxa de colesterol (`chl`) não apresentam uma relação linear.
+   Mas existe alguma correlação entre as medidas? Ilustre a relação.
+
+```{r corSpearmanEx1A, fig.height = 4.5}
+par(mfrow = c(1,2))
+plot(chl~sen_ins, data=db)
+plot(rank(chl)~rank(sen_ins), data=db)
+```
+
+***
+
+```{r corSpearmanEx1B}
+with(db, cor.test(chl, sen_ins, method="spearman"))
+```
+
+***
+
+2. Tendo em vista que sensibilidade à insulina (`sen_ins`) possui uma forte
+   correlação com o percentual de ácido graxos (`fat_acid`). Avalie se
+   existe uma correlação entre o percentual de ácido graxos e a taxa de
+   colesterol (`chl`).
+
+```{r corSpearmanEx2A, fig.height = 4.5}
+par(mfrow = c(1,2))
+plot(chl~fat_acid, data=db)
+plot(rank(chl)~rank(fat_acid), data=db)
+```
+
+***
+
+```{r corSpearmanEx2B}
+with(db, cor.test(chl, fat_acid, method="spearman"))
 ```
 
 # Ao final ...
