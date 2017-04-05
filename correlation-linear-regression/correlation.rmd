@@ -2,7 +2,7 @@
 title:    "Correlação"
 subtitle: "Bioestatística em R"
 author:   "André M Ribeiro-dos-Santos"
-date:     "`r format(Sys.Date(), '%d de %m, %Y')`"
+date:     "`r format(Sys.Date(), '%d de %b, %Y')`"
 fontsize: 10pt
 output:
   beamer_presentation:
