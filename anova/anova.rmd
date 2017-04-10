@@ -1,0 +1,58 @@
+## Regressão com Variáveis Discretas
+
+No mesmo estudo, os pesquisadores esperavam observar diferenças da
+sensibilidade à insulina entre pacientes com diabetes do tipo I e II.
+
+```{r discreteRegressionData, echo = FALSE}
+type_1 <- c(280, 243, 207, 206, 316)
+type_2 <- c(246, 278, 295, 320, 304)
+knitr::kable(data.frame(type_1, type_2),
+             col.names = c("Type I", "Type II"),
+             caption = "Sensibilidade à insulina por tipo de diabetes")
+```
+
+Numa regressão linear busca-se minimizar o erro de predição ($\epsilon$) que
+por definição é obtido com o valor médio. Portanto, quando trabalhamos com
+uma preditor discreto (representada por uma ou mais variáveis com valores 0
+ou 1), $\beta$ assume o valor médio e desvio de $y$ para o grupo.
+
+***
+
+```{r discreteRegressionExample}
+sen_ins <- c(280, 243, 207, 206, 316, 246, 278, 295, 320, 304)
+dbtype  <- rep(c("I", "II"), each=5)
+lm(sen_ins ~ dbtype)
+mean(sen_ins[dbtype == "I"])
+mean(sen_ins[dbtype == "II"]) - mean(sen_ins[dbtype == "I"])
+```
+
+***
+
+```{r discreteRegressionPlot, fig.height=5}
+par(mfrow = c(1, 2))
+plot(dbtype=="II", sen_ins, xlim=c(-1, 2), xlab="", xaxt='n')
+points(0, mean(sen_ins[dbtype=="I"]),  col='red', pch=4)
+points(1, mean(sen_ins[dbtype=="II"]), col='blue',pch=4)
+axis(side = 1, at = 0:1, labels = c("I", "II"))
+abline(250.4, 0, col='red', lty=2)
+abline(250.4 + 38.2, 0, col='blue', lty=2)
+arrows(0.5, 250.4, 0.5, 250.4 + 38.2, lwd = .25)
+
+boxplot(sen_ins~dbtype)
+abline(250.4 - 38.2, 38.2, lty=2)
+```
+
+***
+
+```{r discreteRegressionExampleMeans}
+lm(sen_ins ~ 0 + dbtype)
+mean(sen_ins[dbtype == "I"])
+mean(sen_ins[dbtype == "II"])
+```
+
+***
+
+```{r discreteRegressionTestExample}
+summary(lm(sen_ins~dbtype))$coefficients
+t.test(sen_ins~dbtype, var.equal=TRUE)
+```
