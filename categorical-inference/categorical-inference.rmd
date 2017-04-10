@@ -17,36 +17,9 @@ knitr::knit_hooks$set(change_size = function(before, options, envir) {
         return(paste(options$change_size))
     }
 })
-
 knitr::opts_chunk$set(prompt = TRUE, warning = FALSE, change_size='\\small')
 
-## ## Generate CF table
-## hwfq     <- function(p) c(p^2, 2 * p * (1-p), (1-p)^2)
-## n        <- 50
-## amostra  <- sprintf("S%02d", 1:n)
-## sexo     <- sample(c("M", "F"), n, replace = T)
-## idade    <- floor(rnorm(n, 15, 3))
-## hipoptr  <- sample(c("Sim", "Não"), n, replace = T, prob = c(0.76, 0.24))
-## anemia   <- sample(c("Sim", "Não"), n, replace = T, prob = c(0.4, 0.6))
-## response <- ifelse(hipoptr == "Sim",
-##                   sample(c("I", "II", "III"), n, replace = T, prob = hwfq(0.55)),
-##                   sample(c("I", "II", "III"), n, replace = T, prob = hwfq(0.3)),
-## mut_a    <- ifelse(hipoptr == "Sim",
-##                   sample(c("AA", "Aa", "aa"), n, replace = T, prob = hwfq(0.4)),
-##                   sample(c("AA", "Aa", "aa"), n, replace = T, prob = hwfq(0.1))
-## mut_b    <- ifelse(hipoptr == "Sim",
-##                   sample(c("BB", "Bb", "bb"), n, replace = T, prob = hwfq(0.1)),
-##                   sample(c("BB", "Bb", "bb"), n, replace = T, prob = hwfq(0.25)))
-## write.table(
-##     data.frame(amostra = amostra,
-##                sexo    = sexo,
-##                idade   = idade,
-##                hipoptr = hipoptr,
-##                anemia  = anemia,
-##                response= response,
-##                mut_a   = mut_a,
-##                mut_b   = mut_b),
-##    'cftr-ex.tsv', quote=F, row.names=F)
+set.seed(551991)
 ```
 
 ## Objetivos
