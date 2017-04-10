@@ -2,12 +2,13 @@
 title:    "Regressão Linear"
 subtitle: "Bioestatística em R"
 author:   "André M Ribeiro-dos-Santos"
-date:     "`r format(Sys.Date(), '%d de %m, %Y')`"
+date:     "`r format(Sys.Date(), '%d de %b, %Y')`"
 fontsize: 10pt
 output:
   beamer_presentation:
     theme: "metropolis"
     latex_engine: xelatex
+    md_extensions: +header_attributes
 ---
 
 ```{r setup, include = FALSE}
@@ -19,31 +20,580 @@ on_change_size <- function(before, options, envir) {
 knitr::knit_hooks$set(change_size = on_change_size)
 knitr::opts_chunk$set(prompt = TRUE,
                       warning = FALSE,
-                      dev.args=list(pointsize=18),
+                      dev.args=list(pointsize=16),
                       change_size='\\small')
+set.seed(551991)
 ```
 
 ## Objetivos
 
-- Modelar medidas através de uma regressão linear.
-- Explicar a relação entre variáveis.
-- Ilustrar a regressão e resíduos.
-- Comparar diferente regressões.
+* Modelar relação entre variáveis através de uma regressão linear.
+* Compreender os principais modelos de regressão linear.
+* Compreender os coeficientes e seu significado.
+* Ilustrar a regressão e resíduos.
+* Comparar diferente modelos de regressão.
 
 # Regressão Linear
 
 ## Imagine...
 
+Em um estudo sobre diabetes, pesquisadores observaram uma relação entre
+a variação da sensibilidade à insulina e o percentual de ácido graxos
+entre os pacientes.
+
+\begin{center}
+    \usebeamerfont*{frametitle}
+    Como qual intensidade o percentual de ácidos graxos afeta a
+    sensibilidade à insulina?
+\end{center}
+
+```{r baseExample, echo = FALSE}
+sins  <- c(183, 232, 166, 258, 213, 246, 256, 372, 367, 301)
+facid <- c(15.91, 17.04, 16.22, 18.93, 17.36, 18.12, 17.90, 17.89, 18.55, 17.15)
+name  <- c("Sensibilidade à Insulina", "Ácidos Graxos (%)")
+
+knitr::kable(cbind(sins[1:5], facid[1:5], sins[6:10], facid[6:10]),
+             col.names = rep(name, 2), digits = 2,
+             caption = paste("Medidas de sensibilidade à insulina e composição",
+                             "de ácido graxos em diabéticos"))
+```
+
 ## Avaliando o problema
 
-## Formulas
+* As medidas em questão são categóricas ou quantitativas?
+* Qual a informação deseja-se obter?
+* Qual a distribuição das medidas?
+* Qual a relação entre as variáveis?
 
-## Regressão Linear
+## Avaliando o problema
+
+* As medidas em questão são categóricas ou quantitativas?
+  **Ambas são medidas quantitativas**
+* Qual a informação deseja-se obter?
+  **A intensidade que a variação do percentual de ácidos graxos afeta a
+  sensibilidade à insulina altera**
+
+***
+
+* Qual a distribuição das medidas? **Distribuição Aproximadamente Normal**
+* Qual a relação entre as variáveis? **Relação linear**
+
+```{r baseExampleEval, fig.height = 3.5}
+sen_ins  <- c(183, 232, 166, 258, 213, 246, 256, 372, 367, 301)
+fat_acid <- c(15.91, 17.04, 16.22, 18.93, 17.36, 18.12, 17.90,
+              17.89, 18.55, 17.15)
+par(mfrow = c(1,3))
+hist(sen_ins)
+hist(fat_acid)
+plot(fat_acid, sen_ins, main="Sensibilidade à Insulina vs\nÁcidos Graxos")
+```
+
+## Regressão linear
+
+Pode-se *modelar* a relação entre duas variáveis numéricas através da equação
+a seguir:
+
+$$ y = \alpha + \beta x + \epsilon ~~ ou ~~ Y = X \beta + \epsilon$$
+
+- $\alpha$: o valor basal de $y$, quando $x$ apresenta valor 0.
+- $\beta$: a mudança em $y$ para cada unidade de $x$.
+- $\epsilon$: o erro da predição ou variação aleatória.
+
+Quando não existe relação entre as variáveis, $\beta$ segue uma
+*distribuição t* e podemos utilizar isso para testar a associação das
+variáveis $x$ e $y$.
+
+$$ Ho: \beta = 0; ~~ Ha: \beta \neq 0 $$
+
+***
+
+Como identificar os coeficientes ($\alpha$ e $\beta$) na relação:
+
+$$ y = \alpha + \beta * x + \epsilon $$
+
+```{r regressionExample, echo = FALSE, fig.height=5}
+x  <- 0:10
+y  <- rnorm(length(x), 5 + 2 * x, sd = 2)
+ft <- 5 + 2 * x
+rs <- y - ft
+par(mfrow = c(2,2), mar = rep(2, 4), oma = rep(1, 4))
+
+plot(y~x, ylim = c(0, 30), main = "y~x")
+abline(5, 1, lty=2, col='blue')
+abline(0, 2, lty=2, col='green')
+abline(5, 2, lty=2, col='red')
+legend("bottomright", c("5 + x", "0, + 2x", "5 + 2x"),
+       bg="white", col=c('blue', 'green', 'red'), lty=2)
+ft <- 5 + x
+rs <- y - ft
+cl <- 'blue'
+eq <- 'Resíduos (5 + x)'
+plot(rs~ft, main=eq)
+abline(0, 0, lty = 2, col = cl)
+arrows(ft, 0, ft, rs * .9, length = .1, col = cl)
+ft <- 0 + 2*x
+rs <- y - ft
+cl <- 'green'
+eq <- 'Resíduos (0 + 2x)'
+plot(rs~ft, main=eq)
+abline(0, 0, lty = 2, col = cl)
+arrows(ft, 0, ft, rs * .9, length = .1, col = cl)
+ft <- 5 + 2*x
+rs <- y - ft
+cl <- 'red'
+eq <- 'Resíduos (5 + 2x)'
+plot(rs~ft, main=eq)
+abline(0, 0, lty = 2, col = cl)
+arrows(ft, 0, ft, rs * .9, length = .1, col = cl)
+```
+
+O objetivo é minimizar a soma dos erros ou resíduos ($\epsilon$), para tanto
+existem várias técnicas (e.g. **least-squares**,  *ordinal least-square*,
+*gradiente descendente*, ...).
+
+***
+
+Para regressões lineares, usamos a função `lm`.
+
+```{r lmDoc, eval=FALSE}
+?lm
+## Fitting Linear Models
+## Description:
+##      ‘lm’ is used to fit linear models.  It can be used to carry
+##      out regression, single stratum analysis of variance and
+##      analysis of covariance (although ‘aov’ may provide a more
+##      convenient interface for these).
+## Usage:
+##      lm(formula, data, subset, weights, na.action,
+##         method = "qr", model = TRUE, x = FALSE, y = FALSE,
+##         qr = TRUE, singular.ok = TRUE, contrasts = NULL,
+##         offset, ...)
+```
+
+***
+
+Portanto, modelando a relação entre sensibilidade à insulina e o percentual de
+ácidos graxos. Obtemos:
+
+```{r fitLinearModel}
+(model <- lm(sen_ins~fat_acid))
+```
+
+Corresponde a equação:
+
+$$sensibilidade~insulina = -558.62 + 46.73 * acido~graxo$$
+
+Indicando que o **aumento de 1% do percentual de ácidos graxos** resulta no
+**aumento de 46,73 da sensibilidade à insulina**.
+
+***
+
+```{r fitLinearModelPlot, fig.height=4}
+par(mfrow = c(1,3))
+plot(sen_ins~fat_acid, main = "Sensibilidade vs Ácidos Graxos")
+abline(model, col='red')        ## ou abline(-558.62, 46.73)
+plot(predict(model), resid(model), main="Resíduos vs Predito")
+abline(0, 0,  col='red')
+qqnorm(resid(model))            ## qqnorm
+qqline(resid(model), col='red') ## ou plot(model, which=1:2)
+```
+
+***
+
+Para avaliar se a relação obtida é estatisticamente significante ou espúria,
+utilizamos a função `summary(model)`.
+
+```{r summaryDoc, eval = FALSE}
+?summary
+## Summarizing Linear Model Fits
+## Description:
+##      ‘summary’ method for class ‘"lm"’.
+## Usage:
+##      ## S3 method for class 'lm'
+##      summary(object, correlation = FALSE, symbolic.cor = FALSE,
+##              ...)
+##      ## S3 method for class 'summary.lm'
+##      print(x, digits = max(3, getOption("digits") - 3),
+##            symbolic.cor = x$symbolic.cor,
+##            signif.stars = getOption("show.signif.stars"), ...)
+```
+
+***
+
+```{r evalFitLinearModel, change_size="\\footnotesize"}
+summary(model)
+```
+
+## Funções exploratórias
+
+| Função    | Retorno                                                              |
+| --------: | :------------------------------------------------------------------  |
+| `coef`    | Tabela com os coeficientes e resultados do teste quando `summary.lm` |
+| `resid`   | Vetor dos resíduos ($y - \hat{y}$) para da valor                     |
+| `predict` | Vetor dos valores preditos ($\hat{y}$) para cada valor               |
+Table: Funções exploratórias
+
+## Exercício - Regressão Linear Simples
+
+Pesquisadores buscando entender a elevada variação da sensibilidade à insulina
+(`sen_ins`) observada numa amostra de 50 diabéticos. Trabalhos anteriores
+relacionaram esta variação ao teor de colesterol (`chl`) e ao percentual de
+lipídios (`fat_acid`) no tecido muscular.
+
+1. Ilustre a relação entre `sen_ins` com `chl` e `fat_acid`.
+2. Aplique uma regressão linear e explique como as variáveis `chl` e `fat_acid`
+   se relacionam com `sen_ins`. Avalie se a relação entre as medidas é real ou
+   aleatória.
+3. Faça os principais gráficos de diagnóstico (scatter, resíduos e qqplot) para
+   as regressões anteriores. Para alguma das regressões não seria recomendado o
+   modelo utilizado? Justifique.
+4. Existe alguma estratégia que você recomendaria para tratar deste caso?
+
+```{r loadDBData}
+db <- read.table('db.tsv', header=T)
+```
+
+***
+
+1. Ilustre a relação entre `sen_ins` com `chl` e `fat_acid`.
+
+***
+
+```{r linearRegressionEx1, fig.height = 5.5}
+par(mfrow = c(1,2))
+plot(sen_ins~chl, data=db)
+abline(model_chl <- lm(sen_ins~chl, data=db), lty=2)
+plot(sen_ins~fat_acid, data=db)
+abline(model_fat <- lm(sen_ins~fat_acid, data=db), lty=2)
+```
+
+***
+
+2. Aplique uma regressão linear e explique como as variáveis `chl` e `fat_acid`
+   se relacionam com `sen_ins`. Avalie se a relação entre as medidas é real ou
+   aleatória.
+
+***
+
+```{r linearRegressionEx2}
+coef(summary(model_chl))
+coef(summary(model_fat))
+```
+
+***
+
+3. Faça os principais gráficos de diagnóstico (scatter, resíduos e qqplot) para
+   as regressões anteriores. Para alguma das regressões não seria recomendado o
+   modelo utilizado? Justifique.
+
+***
+
+```{r linearRegressionEx3, fig.height = 5}
+par(mfrow = c(2,2), mar=rep(2,4))
+plot(model_chl, which = c(1,2))
+plot(model_fat, which = c(1,2))
+```
+
+***
+
+4. Existe alguma estratégia que você recomendaria para tratar deste caso?
+
+***
+
+```{r linearRegressionEx4, fig.height = 4.5}
+par(mfrow = c(1,3))
+hist(db$chl)
+hist(log(db$chl))
+plot(sen_ins~chl, data=db)
+```
+
+## Regressão Múltipla
+
+Outro fator de risco para diabetes é a pressão sanguínea, a qual é relacionada
+a fatores como índice de massa corpórea (IMC ou BMI) e o  teor de colesterol.
+
+\begin{center}
+    \usebeamerfont*{frametitle}
+    Qual o efeito dessas variáveis sobre a pressão sanguínea?
+\end{center}
+
+```{r multipleRegressionExample, echo = FALSE}
+bmi  <- rnorm(10, 25, 3)
+chl  <- floor(rnorm(10, 120 + (sen_ins/250 - 1.75)^-1, 5))
+sex  <- sample(c('F', 'M'), 10, replace = T)
+fem  <- sex == 'F'
+bp   <- floor(rnorm(10, 110 - 5 * fem + 10 * scale(bmi) - 5 * fem * scale(bmi) + 5 * scale(chl), 2))
+mtx  <- cbind(bmi, chl, bp)
+knitr::kable(cbind(mtx[1:5,], mtx[6:10,]),
+             digits = 2,
+             col.names=rep(c("IMC", "Colesterol", "Pressão Sanguínea"), 2),
+             caption = "IMC, Teor de Colesterol e Pressão Sanguínea em Diabeticos")
+```
+
+***
+
+Continuamos avaliando a **relação entre variáveis quantitativas** de forma a
+**modelar seus efeitos**, falta verificar se existe uma relação linear entre
+as medidas.
+
+```{r multipleRegressionPlot, fig.height=5}
+bmi <- c(26.85, 24.64, 22.64, 22.39, 29.00, 21.80, 23.69,
+         24.72, 26.25, 25.27)
+chl <- c(117, 120, 119, 112, 111, 119, 117, 117, 116, 115)
+bp  <- c(124, 111, 105,  90, 105, 103, 110, 107, 105, 106)
+par(mfrow = c(1,2))
+plot(bp~bmi); abline(model_bmi <- lm(bp~bmi))
+plot(bp~chl); abline(model_chl <- lm(bp~chl))
+```
+
+***
+
+Os modelos são estatisticamente significativos?
+
+```{r multipleRegressionOnlyBMI}
+coef(summary(model_bmi))
+summary(model_bmi)$adj.r.squared
+coef(summary(model_chl))
+summary(model_chl)$adj.r.squared
+```
+
+***
+
+```{r multipleRegressionFit, change_size = "\\footnotesize"}
+summary(model_both <- lm(bp ~ bmi + chl))
+```
+
+***
+
+```{r, fig.height = 5}
+par(mfrow = c(1, 3))
+plot(predict(model_both), bp, main="Predicted vs Fitted")
+abline(0, 1)
+plot(model_both, which = 1:2)
+```
+
+***
+
+Usando apenas BMI, o modelo obteve um $R^2~ajustado$ de ~ 10%, no entanto
+quando consideramos ambos BMI e colesterol obteve-se ~ 67%.
+**Podemos assumir que o modelo utilizando ambas variáveis é melhor do que
+o modelo com apenas BMI?**
+Para responder essa pergunta, devemos primeiro avaliar se a diferença entre
+os modelos é significativa ou aleatória.
+
+```{r multipleRegressionModelComparison}
+anova(model_bmi, model_both)
+```
+
+***
+
+**Como podemos comparar o impacto de cada medida para identificar o
+fator mais importante na regulação da pressão sanguínea?**
+Uma vez que as variáveis estão em escalas diferentes, precisamos
+equalizar elas numa escala única (e.g. **z-scale**).
+
+```{r multipleRegressionScale}
+model_scaled <- lm(bp~scale(bmi) + scale(chl))
+coef(summary(model_scaled))
+```
+
+***
+
+**E só para provar que essa transformação não afeta o modelo em si.**
+
+```{r multipleRegressionScaleComparison}
+anova(model_both, model_scaled)
+```
+
+## Regressão com Interação de Variáveis Discretas
+
+Sabendo que o sexo do paciente (*feminino* ou *masculino*) afeta a pressão
+sanguínea média.
+
+\begin{center}
+    \usebeamerfont*{frametitle}
+    A inclusão do sexo melhora a predição do modelo?
+\end{center}
+
+```{r interactionRegressionData, echo = FALSE}
+mtx <- cbind(bp, sex)
+knitr::kable(cbind(mtx[1:5, ], mtx[6:10,]),
+             digits = 2,
+             col.names=rep(c("Pressão Sanguínea", "Sexo") ,2),
+             caption="Pressão Sanguínea e Sexo em diabeticos")
+```
+
+***
+
+A primeira questão é avaliar se a pressão sangúinea difere entre os grupos
+(sexo masculino e feminino). Como estamos comparando a distribuição de uma
+variável quantitativa entre dois grupos, utilizamos um *teste t*.
+
+```{r interactionRegressionTTest, fig.align='center', out.width="60%"}
+sex <- c('M', 'F', 'M', 'F', 'F', 'M', 'M', 'M', 'F', 'M')
+t.test(bp~sex)$p.value
+boxplot(bp~sex)
+```
+
+***
+
+Já tendo observado a associação entre pressão sanguínea, BMI e Colesterol.
+
+\begin{center}
+    \usebeamerfont*{frametitle}
+    Será o efeito do sexo mediado pelo BMI?
+\end{center}
+
+```{r interactionRegressionSimple}
+model_add <- lm(bp ~ bmi + sex)
+coef(summary(model_add))
+summary(model_add)$adj.r.squared
+```
+
+***
+
+```{r interactionRegressionMultiPlot, fig.height = 5}
+cf <- coef(model_add)
+plot(bp~bmi, col = c(F='red', M='blue')[sex])
+abline(cf[1], cf[2], col='red')
+abline(cf[1] + cf[3], cf[2], col='blue')
+arrows(25, predict(model_add, data.frame(bmi=25, sex='F')),
+       25, predict(model_add, data.frame(bmi=25, sex='M')),
+       length=.1)
+legend("bottomright", c('F', 'M'), pch = 1, lty=1, col=c('red', 'blue'))
+```
+
+***
+
+```{r interactionRegressionExample, change_size="\\footnotesize"}
+summary(model_int <- lm(bp~bmi*sex))
+```
+
+***
+
+```{r interactionRegressionPlot, fig.height = 5}
+cf <- coef(model_int)
+plot(bp~bmi, col = c(F='red', M='blue')[sex])
+abline(cf[1], cf[2], col='red')
+abline(cf[1] + cf[3], cf[2] + cf[4], col='blue')
+legend("bottomright", c('F', 'M'), pch = 1, lty=1, col=c('red', 'blue'))
+```
+
+***
+
+```{r interactionRegressionComparison}
+anova(model_bmi, model_add, model_int)
+```
+
+## BONUS - Outras relações e fórmulas
+
+| Modelo     | Equação                                                                  | Formula                                |
+| :--------- | :----------------------------------------------------------------------: | :------------------------------------: |
+| Nula       | $y = \alpha + \epsilon$                                                  | `y~1`                                  |
+| Linear     | $y = \alpha + \beta x + \epsilon$                                        | `y ~ 1 + x` ou `y ~ x`                 |
+| Discreto   | $y = \alpha + \beta x + \epsilon; ~x \in {0,1}$                          | `y ~ 1 + x` ou `y ~ x`                 |
+| Polinomial | $y = \alpha + \beta_1 x + \beta_2 x^2 + ... + \beta_k x^k + \epsilon$    | `y ~ poly(x, k)`                       |
+| Múltipla   | $y = \alpha + \beta_1 x_1 + \beta_2 x_2 + ... + \beta_k x_k + \epsilon$  | `y ~ x1 + x2 + x3`                     |
+| Iteração   | $y = \alpha + \beta_1 x_1 + \beta_2 x_2 + \beta_3 x_1 * x_2 + \epsilon$  | `y ~ x1+x2+x1:x2` ou `y ~ x1*x2`       |
+Table: Principais Modelos de Regressão Linear
+
 
 ## Exercícios - Regressão Linear
 
-# Ao final ...
+Agora utilizando a amostra de 50 pacientes investigados, desenvolva um modelo
+estatístico relacionando a pressão sanguínea (`bp`) com o índice de massa
+corpórea (`bmi`), taxa de colesterol (`chl`) e o sexo (`sexo`).
+
+1. Ilustre a relação das variáveis investigadas e a pressão sanguínea.
+2. Considerando um modelo de efeito apenas additivo (sem interações), descreva
+   o efeito das variáveis sobre a pressão sanguínea, avalie se a relação é
+   significativa ou espúria e ilustre e avalie os principais gráficos de
+   diagnóstico.
+3. Considerando um modelo onde o efeito do BMI depende do sexo, descreva
+   o efeito das variáveis sobre a pressão sanguínea, avalie se a relação é
+   significativa ou espúria e ilustre e avalie os principais gráficos de
+   diagnóstico.
+4. Compare o modelo aditivo ao com interações. Qual prevê melhor a pressão
+   sanguínea nessa amostra? Justifique
+
+```{r loadDataDB, eval=FALSE}
+db <- read.table('db.tsv', header=T)
+```
+
+***
+
+1. Ilustre a relação das variáveis investigadas e a pressão sanguínea.
+
+***
+
+```{r regressionEx1, fig.height=6}
+par(mfrow = c(1, 3))
+plot(bp~bmi, data=db); abline(lm(bp~bmi, data=db))
+plot(bp~chl, data=db); abline(lm(bp~chl, data=db))
+plot(bp~sex, data=db); abline(lm(bp~sex, data=db))
+```
+
+***
+
+2. Considerando um modelo de efeito apenas additivo (sem interações), descreva
+   o efeito das variáveis sobre a pressão sanguínea, avalie se a relação é
+   significativa ou espúria e ilustre e avalie os principais gráficos de
+   diagnóstico.
+
+***
+
+```{r regressionEx2A, change_size="\\footnotesize"}
+summary(model_add <- lm(bp~bmi+chl+sex, data=db))
+```
+
+***
+
+```{r regressionEx2B, fig.height=5}
+par(mfrow = c(1,3))
+plot(db$bp~predict(model_add))
+abline(0, 1)
+plot(model_add, which = 1:2)
+```
+
+***
+
+3. Considerando um modelo onde o efeito do eNOS interage com BMI, descreva
+   o efeito das variáveis sobre a pressão sanguínea, avalie se a relação é
+   significativa ou espúria e ilustre e avalie os principais gráficos de
+   diagnóstico.
+
+***
+
+```{r regressionEx3A, change_size="\\footnotesize"}
+summary(model_int <- lm(bp~bmi*sex+chl, data=db))
+```
+
+***
+
+```{r regressionEx3B, fig.height=5}
+par(mfrow = c(1,3))
+plot(db$bp~predict(model_int))
+abline(0, 1)
+plot(model_int, which = 1:2)
+```
+
+***
+
+4. Compare o modelo aditivo ao com interações. Qual prevê melhor a pressão
+   sanguínea nessa amostra? Justifique
+
+```{r regressionEx4}
+anova(model_add, model_int)
+```
+
+# Ao final
 
 ## O que vimos?
+
+* Modelar relação entre variáveis através de uma regressão linear.
+* Compreender os principais modelos de regressão linear.
+* Compreender os coeficientes e seu significado.
+* Ilustrar a regressão e resíduos.
+* Comparar diferente modelos de regressão.
 
 # Até a próxima
