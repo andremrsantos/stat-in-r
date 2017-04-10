@@ -619,7 +619,7 @@ e genotípica (esperada e observada) e avalie se a mutação está em equilíbri
 
 ```{r idpEx3AChisq, fig.height = 3.8}
 (chi <- sum((obs - exp)^2/exp))
-pchisq(chi, df=2)
+pchisq(chi, df=1, lower.tail = FALSE)
 barplot(rbind(obs, exp), beside = T,
         legend = c("Observado", "Esperado"))
 ```
@@ -658,7 +658,7 @@ Que podemos simplificar para:
 
 ```{r idpEx3BChisq}
 (chi <- sum((obs - exp)^2/exp))
-pchisq(chi, df=2)
+pchisq(chi, df=1, lower.tail = FALSE)
 ```
 
 ## Questões
@@ -720,43 +720,38 @@ legend("topright", title="Genótipo", rownames(ctg), fill = 1:3)
 
 ***
 
-```{r idpEx6B1}
-ctgADomFT <- fisher.test(table(cf$hipoptr, cf$mut_a != "AA"))
-ctgARecFT <- fisher.test(table(cf$hipoptr, cf$mut_a == "aa"))
+```{r idpEx6B1A}
+fisher.test(table(cf$hipoptr, cf$mut_a != "AA"))
+````
 
-with(ctgADomFT, c(estimate, conf.int, pval=p.value))
-with(ctgARecFT, c(estimate, conf.int, pval=p.value))
+***
+
+```{r idpEx6B1B}
+fisher.test(table(cf$hipoptr, cf$mut_a == "aa"))
 ```
 
 ***
 
 
-```{r idpEx6B2}
-ctgBDomFT <- fisher.test(table(cf$hipoptr, cf$mut_b != "BB"))
-ctgBRecFT <- fisher.test(table(cf$hipoptr, cf$mut_b == "bb"))
-
-with(ctgBDomFT, c(estimate, conf.int, pval=p.value))
-with(ctgBRecFT, c(estimate, conf.int, pval=p.value))
+```{r idpEx6B2A}
+fisher.test(table(cf$hipoptr, cf$mut_b != "BB"))
 ```
 
 ***
 
-```{r ipEx6BFig, change_size="\\footnotesize", fig.height=3.5}
-par(mfrow = c(1, 2))
-plot(1:2, c(ctgADomFT$estimate, ctgARecFT$estimate), xlab="", ylab="OR",
-     xlim = c(0.5, 2.5), ylim = c(0, 4), xaxt = "n")
-abline(h=1)
-arrows(1:2, c(ctgADomFT$conf.int[1], ctgARecFT$conf.int[1]),
-       1:2, c(ctgADomFT$conf.int[2], ctgARecFT$conf.int[2]),
-       code = 3, angle = 90)
-axis(1, at=1:2, labels = c("Dom", "Rec"))
-plot(1:2, c(ctgADomFT$estimate, ctgBRecFT$estimate), xlab="", ylab="OR",
-     xlim = c(0.5, 2.5), ylim = c(0, 9), xaxt = "n")
-abline(h=1)
-arrows(1:2, c(ctgBDomFT$conf.int[1], ctgBRecFT$conf.int[1]),
-       1:2, c(ctgBDomFT$conf.int[2], ctgBRecFT$conf.int[2]),
-       code = 3, angle = 90)
-axis(1, at=1:2, labels = c("Dom", "Rec"))
+```{r idpEx6B2B}
+fisher.test(table(cf$hipoptr, cf$mut_b == "bb"))
+```
+
+***
+
+```{r, fig.height = 5}
+par(mfrow = c(2,2), mar = rep(2, 4))
+barplot(prop.table(table(cf$hipoptr, cf$mut_a != "AA"), 1), beside = T)
+barplot(prop.table(table(cf$hipoptr, cf$mut_a == "aa"), 1), beside = T)
+barplot(prop.table(table(cf$hipoptr, cf$mut_a != "AA"), 1), beside = T)
+barplot(prop.table(table(cf$hipoptr, cf$mut_a == "aa"), 1), beside = T)
+legend("topleft", c("não", "sim"), title = "hipoptr", fill = grey.colors(2))
 ```
 
 # Ao Final...
