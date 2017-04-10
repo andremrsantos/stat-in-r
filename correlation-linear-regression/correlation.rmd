@@ -22,24 +22,6 @@ knitr::opts_chunk$set(prompt = TRUE,
                       dev.args=list(pointsize=17),
                       change_size='\\small')
 set.seed(551991)
-## ## Generate Example data
-## hwfq <- function(p) c(p^2, 2*p*(1-p), (1-p)^2)
-## n    <- 50
-
-## type     <- sample(c("I", "II"), n, replace=T)
-## sen_ins  <- floor(rnorm(n, 250 + 50 * (type=="II"), 25))
-## fat_acid <- rnorm(n, 15 + sen_ins/100)
-## chl      <- rnorm(n, 120 - exp(scale(sen_ins)), .5)
-## bmi      <- rnorm(n, 25, 3)
-## enos     <- sample(c("aa", "Aa", "AA"), n, replace = T, prob = hwfq(0.9))
-## enos_rec <- enos == "AA"
-## bp_means <- 110 - 5*enos_rec + 10*scale(bmi) - 3*enos_rec*scale(bmi) + 5*scale(chl)
-## bp       <- floor(rnorm(n, bp_means, 3))
-## lod_hatk <- (type=="II") - enos_rec - 0.5*enos_rec*scale(bmi) + scale(bmi) + scale(chl) + rnorm(n)
-## hrt_attack <- ifelse(plogis(lod_hatk) < .65, "Sim", "Não")
-
-## db <- data.frame(type, sen_ins, fat_acid, chl, bmi, enos, bp, hrt_attack)
-## write.table(db, 'db.tsv', quote=F, row.names=F)
 ```
 
 ## Objetivos
