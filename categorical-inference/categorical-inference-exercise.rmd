@@ -23,7 +23,7 @@ set.seed(551991)
     \item[] \makebox[2cm]{Matricula:\hfill} \line(1,0){250}
 \end{itemize}
 
-# Inferência emDados Categóricos
+# Inferência em Dados Categóricos
 
 Em um estudo sobre hipertensão, os pesquisadores revisaram a literatura e identificaram
 quatro polimorfismos no gene eNOS (`enosa`, `enosb`, `enosc`, `enosd`) que foram
