@@ -612,20 +612,21 @@ e genotípica (esperada e observada) e avalie se a mutação está em equilíbri
 ```{r idpEx3A}
 (obs <- table(cf$mut_a))
 (p   <- (obs[1] * 2 + obs[2]) / (2 * sum(obs)))
-(exp <- c(p^2, 2 * p * (1-p), (1-p)^2))
+(exp <- c(p^2, 2 * p * (1-p), (1-p)^2) * sum(obs))
 ```
 
 ***
 
 ```{r idpEx3AChisq, fig.height = 3.8}
-chisq.test(obs, p = exp)
-barplot(rbind(obs, exp * sum(obs)), beside = T,
+(chi <- sum((obs - exp)^2/exp))
+pchisq(chi, df=2)
+barplot(rbind(obs, exp), beside = T,
         legend = c("Observado", "Esperado"))
 ```
 
 ***
 
-### Por que df = 2?
+### Por que df = 1?
 
 Quando avaliamos o equilíbrio de Hardy-Weinberg, verificamos se os alelos
 de um cromossomo são independentes do outro. Portanto avaliamos a seguinte
@@ -656,7 +657,8 @@ Que podemos simplificar para:
 ***
 
 ```{r idpEx3BChisq}
-chisq.test(obs, p = exp)
+(chi <- sum((obs - exp)^2/exp))
+pchisq(chi, df=2)
 ```
 
 ## Questões
