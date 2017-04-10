@@ -41,7 +41,8 @@ summary(cf)
 ```
 
 1. Sabendo que na mesma clínica os médicos haviam constatado que pacientes hipertensos
-   se consultam com uma frequência de 16% a cada mês.
+   se consultam com uma frequência de 16% a cada mês. O número de hipertensos observado
+   difere da proporção normalmente observada?
 
 ```{r categoricalEx1}
 has_hbp <- cf$hbp == "sim"
