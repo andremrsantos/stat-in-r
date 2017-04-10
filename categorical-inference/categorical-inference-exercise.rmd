@@ -1,0 +1,127 @@
+---
+title:    "Bioestatística em R - Exercícios"
+geometry:   margin=1in
+fontfamily: mathpazo
+fontsize:   12pt
+spacing:    double
+output:
+    pdf_document:
+        latex_engine: pdflatex
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(prompt = TRUE,
+                      eval = FALSE,
+                      echo = FALSE,
+                      warning = FALSE)
+set.seed(551991)
+```
+
+\begin{itemize}
+    \item[] \makebox[2cm]{Nome:\hfill}      \line(1,0){250}
+    \item[] \makebox[2cm]{Data:\hfill}      \line(1,0){250}
+    \item[] \makebox[2cm]{Matricula:\hfill} \line(1,0){250}
+\end{itemize}
+
+# Inferência emDados Categóricos
+
+Em um estudo sobre hipertensão, os pesquisadores revisaram a literatura e identificaram
+quatro polimorfismos no gene eNOS (`enosa`, `enosb`, `enosc`, `enosd`) que foram
+previamente associados a suscetibilidade ao desenvolvimento de hipertensão (`hbp`). Os
+pesquisadores coletaram 50 amostras de pacientes durante um mês de atividades para os
+quais genotiparam os quatro polimorfismos e diagnosticaram hipertensão.
+
+Sobre este estudo, responda:
+
+```{r loadData, echo = TRUE, eval = TRUE}
+##dados disponíveis no arquivo cf.tsv
+cf <- read.table('cf.tsv', header = T)
+## resumo dos dados disponíveis
+summary(cf)
+```
+
+1. Sabendo que na mesma clínica os médicos haviam constatado que pacientes hipertensos
+   se consultam com uma frequência de 16% a cada mês.
+
+```{r categoricalEx1}
+has_hbp <- cf$hbp == "sim"
+## frequência de hipertensão
+mean(has_hbp)
+## Visto que estamos comparando a frequência de uma variável
+## binomial, usamos o teste binomial para comparar com a
+## frequência observada.
+binom.test(table(has_hbp), p=(1-0.16))
+```
+
+2. Em estudos de genética humana, geralmente espera-se que todos os polimorfismos
+   estudados adiram ao equilíbrio de Hardy-Weinberg, visto que o desvio indica uma
+   forte pressão evolutiva, ou cruzamento seletivo está ocorrendo e ambos são
+   incomuns em populações urbanas. Portanto, uma boa medida de diagnostico para
+   averiguar se nenhum erro de metodologia ocorreu é testar o equilíbrio e excluir
+   os genes que apresentam desvio. Avalie o desequilibrio de Hardy-Weinberg para
+   as mutações do eNOS e indique se algum polimorfismo precisa ser excluido ilustrando
+   a diferença observada.
+
+```{r categoricalEx2}
+## definir função para calcular hardy-weinberg
+hw <- function(obs) {
+    n <- sum(obs)
+    p <- (2 * obs[1] + obs[2]) / (2*n)
+    exp <- c(p^2, 2 * p * (1-p), (1-p)^2) * n
+    chi <- sum((obs-exp)^2/exp)
+    c("chi.squared" = chi, "p.value" = pchisq(chi, df=1, lower.tail = FALSE))
+}
+## calcula-se o desequilibrio para os polimorfismos:
+## enosa, mas primeiramente precisamos corrigir a variavel
+## para incluir AA
+cf$enosa <- factor(cf$enosa, levels = c("aa", "Aa", "AA"))
+hw(table(cf$enosa))
+## enosb
+hw(table(cf$enosb))
+## enosc
+hw(table(cf$enosc))
+## enosd
+hw(table(cf$enosd))
+## como enosd apresentou um desvio significativo, vamos ilustrar
+## a frequência observada ao lado da esperada para visualizar a
+## diferença.
+obs <- table(cf$enosd)
+p   <- (2 * obs[1] + obs[2]) / (2*sum(obs))
+exp <- c(p^2, 2 * p * (1-p), (1-p)^2) * sum(obs)
+
+barplot(rbind(obs, exp), beside = T)
+legend("topleft", c("Observado", "Esperado"), fill = gray.colors(3))
+```
+
+3. Para as mutações que se encontram em equilibrio de Hardy-Weinberg, avalie se
+   elas estão associadas com a ocorrência de hipertensão. Justifique a abordagem
+   utilizada e ilustre a relação.
+
+```{r categoricalEx3}
+## enosa
+## gera e imprimi a tabela de confusão.
+addmargins(enosa <- table(cf$hbp, cf$enosa))
+## avalia se existe associação.
+chisq.test(enosa)
+## ilustra a relação.
+barplot(prop.table(enosa, 1), beside = TRUE,
+        legend = c("não-hipertenso", "hipertenso"))
+
+## enosb
+## gera e imprimi a tabela de confusão.
+addmargins(enosb <- table(cf$hbp, cf$enosb))
+## avalia se existe associação.
+chisq.test(enosb)
+## ilustra a relação.
+barplot(prop.table(enosb, 1), beside = TRUE,
+        legend = c("não-hipertenso", "hipertenso"))
+
+## enosc
+## gera e imprimi a tabela de confusão.
+addmargins(enosc <- table(cf$hbp, cf$enosc))
+## avalia se existe associação.
+chisq.test(enosc)
+## ilustra a relação.
+barplot(prop.table(enosc, 1), beside = TRUE)
+legend("topleft", c("não-hipertenso", "hipertenso"), fill = gray.colors(2))
+```
