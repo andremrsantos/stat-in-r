@@ -11,8 +11,6 @@ output:
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(prompt = TRUE,
-                      eval = FALSE,
-                      echo = FALSE,
                       warning = FALSE)
 set.seed(551991)
 ```
