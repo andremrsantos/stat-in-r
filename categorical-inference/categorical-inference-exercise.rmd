@@ -21,7 +21,7 @@ set.seed(551991)
     \item[] \makebox[2cm]{Matricula:\hfill} \line(1,0){250}
 \end{itemize}
 
-# Inferência emDados Categóricos
+# Inferência em Dados Categóricos
 
 Em um estudo sobre hipertensão, os pesquisadores revisaram a literatura e identificaram
 quatro polimorfismos no gene eNOS (`enosa`, `enosb`, `enosc`, `enosd`) que foram
@@ -39,7 +39,8 @@ summary(cf)
 ```
 
 1. Sabendo que na mesma clínica os médicos haviam constatado que pacientes hipertensos
-   se consultam com uma frequência de 16% a cada mês.
+   se consultam com uma frequência de 16% a cada mês. O número de hipertensos observado
+   difere da proporção normalmente observada?
 
 ```{r categoricalEx1}
 has_hbp <- cf$hbp == "sim"

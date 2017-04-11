@@ -5,6 +5,24 @@ set.seed(551991)
 ## Hardy-Weinberg proportions
 hwfq <- function(p) c(p^2, 2*p*(1-p), (1-p)^2)
 
+## Generate Exercise Data
+n  <- 47
+
+sex <- sample(c("M", "F"), n, replace = T)
+
+bmi <- rnorm(n, 25 - 3 * (sex == "F"))
+bmr <- rnorm(n, 1000 + 25 * scale(bmi), 15)
+chl <- rnorm(n, 100 + 15 * tanh(bmi - 25), 1)
+
+enos <- sample(c('aa', 'Aa', 'AA'), n, replace = T, prob = hwfq(0.25))
+enosrec <- enos == "AA"
+
+bpmean <- (110 - 10*enosrec + 10*scale(bmi) - 5*enosrec*scale(bmi) + 4*scale(chl))
+bp <- floor(rnorm(n, bpmean, 2))
+
+write.table(data.frame(bmi, bmr, chl, bp, enos, sex),
+            'bp.tsv', quote = F, row.names = F)
+
 ## Generate Diabetes Example data.frame
 n <- 50
 

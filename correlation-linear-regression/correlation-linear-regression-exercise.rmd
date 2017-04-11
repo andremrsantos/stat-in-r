@@ -1,0 +1,132 @@
+---
+title:    "Bioestatística em R - Exercícios"
+geometry:   margin=1in
+fontfamily: mathpazo
+fontsize:   12pt
+spacing:    double
+output:
+    pdf_document:
+        latex_engine: pdflatex
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, eval = FALSE,
+                      warning = FALSE)
+set.seed(551991)
+```
+
+\begin{itemize}
+    \item[] \makebox[2cm]{Nome:\hfill}      \line(1,0){250}
+    \item[] \makebox[2cm]{Data:\hfill}      \line(1,0){250}
+    \item[] \makebox[2cm]{Matricula:\hfill} \line(1,0){250}
+\end{itemize}
+
+# Correlação e Regressão Linear
+
+Em um estudo de hipertensão, os pesquisadores constataram uma elevada
+variabilidade da pressão sanguínea em repouso (`bp`)dos pacientes. Para
+investigar a causa desta variabilidade, os pesquisadores coletaram dados
+referentes ao sexo dos pacientes (`sex`), indice de massa corporea (`bmi`),
+taxa de metabolismo basal (`bmr`), taxa de colesterol no sangue (`chl`)
+e genotiparam uma mutação do gene eNOS (`enos`).
+
+```{r loadDataset, echo = TRUE, eval = TRUE}
+dt <- read.table('bp.tsv', header=T)
+summary(dt)
+```
+
+Sobre os dados obtidos responda:
+
+1. Para as medidas númericas, avalie a correlação destas com a pressão
+   sanguínea. Ilustre a relação entre as variáveis e indique qual a
+   medida de correlação mais indicada para cada situação.
+
+```{r exercise1, fig.height = 3.5}
+## Plotar um scatter plot para as medidas
+par(mfrow = c(1,3))
+plot(bp~bmi, data=dt)
+plot(bp~chl, data=dt)
+plot(bp~bmr, data=dt)
+## ou plot(bp~bmi+chl+bmr, data=dt)
+
+## Testar a correlação
+cor.test(dt$bp, dt$bmi)
+cor.test(dt$bp, dt$chl, method="spearman")
+cor.test(dt$bp, dt$bmr)
+```
+
+2. Para as medidas que apresentam uma relação linear, modele a
+   influência dela sobre a pressão sanguínea. Ilustre a relação,
+   indicando a intensidade do efeito e se ele é aleatória ou
+   significativa. Por último compare os modelos indicando qual melhor
+   modela a pressão sanguínea segundo o coeficiente de determinação?
+
+```{r exercise2, fig.height = 3.5}
+## modelar as relações
+model_bmi <- lm(bp~bmi, data=dt)
+model_bmr <- lm(bp~bmr, data=dt)
+## ilustrar a relação entre as medidas
+par(mfrow = c(1,2))
+plot(bp~bmi, data=dt)
+abline(model_bmi)
+plot(bp~bmr, data=dt)
+abline(model_bmr)
+## avaliar a associação indicando se a associação é espúria ou
+## significativa.
+summary(model_bmi)
+summary(model_bmr)
+## comparando o r^2 ajustado
+summary(model_bmi)$adj.r.squared
+summary(model_bmr)$adj.r.squared
+```
+
+3. Para o melhor modelo identificado, ilustre a relação entre as
+   medidas destacando os casos com cores diferentes de acordo com
+   o sexo e genótipo do eNOS. Essas variáveis aparetam estar
+   relacionadas com a pressão sanguínea?
+
+```{r exercise3, fig.height = 4}
+## ilustrar a relação, usando cores diferentes para cada categoria
+par(mfrow=c(1,2))
+plot(bp~bmi, data=dt, col=sex)
+legend("topleft", levels(dt$sex), col=1:2, pch = 1)
+plot(bp~bmi, data=dt, col=enos)
+legend("topleft", levels(dt$enos), col=1:3, pch = 1)
+```
+
+4. Atualize o modelo obtido na questão (2) para incluir a variável
+   identificada na questão (3) seguindo um modelo aditivo e interativo.
+   Ilustre essa relação utilizando curvas distintas para cada categoria,
+   a seguir compare os modelos obtidos indicando qual o melhor resultado.
+
+```{r exercise4, fig.height = 4}
+## atulizar o modelo para incluir o efeito do eNOS em recessivo
+## (aa/Aa vs AA).
+dt$enos_rec <- factor(dt$enos == "AA", labels=c("aa/Aa", "AA"))
+
+model_add <- lm(bp~bmi+enos_rec, data=dt)
+summary(model_add)
+
+model_int <- lm(bp~bmi*enos_rec, data=dt)
+summary(model_int)
+
+## ilustre as relações
+par(mfrow=c(1,2))
+
+plot(bp~bmi, data=dt, col=enos_rec)
+legend("topleft", levels(dt$sex), col=1:2, pch = 1, lty = 1)
+
+cf <- coef(model_add)
+abline(cf[1], cf[2], col=1)
+abline(cf[1] + cf[3], cf[2], col=2)
+
+plot(bp~bmi, data=dt, col=enos_rec)
+legend("topleft", levels(dt$enos), col=1:2, pch = 1)
+
+cf <- coef(model_int)
+abline(cf[1], cf[2], col=1)
+abline(cf[1] + cf[3], cf[2] + cf[4], col=2)
+
+## comparar os modelos
+anova(model_bmi, model_add, model_int)
+```
