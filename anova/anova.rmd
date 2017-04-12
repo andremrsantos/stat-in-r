@@ -1,58 +1,381 @@
+---
+title:    "Anova"
+subtitle: "Bioestatística em R"
+author:   "André M Ribeiro-dos-Santos"
+date:     "`r format(Sys.Date(), '%d de %b, %Y')`"
+fontsize: 10pt
+output:
+  beamer_presentation:
+    theme: "metropolis"
+    latex_engine: xelatex
+---
+
+```{r setup, include = FALSE}
+on_change_size <- function(before, options, envir) {
+    if (before)
+        return(paste(options$change_size))
+}
+
+knitr::knit_hooks$set(change_size = on_change_size)
+knitr::opts_chunk$set(prompt = TRUE,
+                      warning = FALSE,
+                      dev.args=list(pointsize=17),
+                      change_size='\\small')
+set.seed(551991)
+```
+
+# ANOVA One-Way
+
+## Objetivos
+
+* Avaliar a diferença de uma variável quantitativa entre três ou mais
+  grupos.
+* Compreender o resultado de uma ANOVA.
+* Quando aplica-se uma ANOVA *one-way* ou *two-way*.
+* Como investigar a diferença entre os grupos.
+* Ilustrar os resultados.
+
+## Imagine ...
+
+Pesquisadores buscando desenvolver uma nova droga para o tratamento de
+hipertensão, investigaram o efeito de três compostos sobre a pressão
+sanguínea de pacientes. Neste estudo eles distribuiram os pacientes
+entre os três medicamentos totalizando 5 pacientes por composto e 5
+pacientes tratados com placebo.
+
+\begin{center}
+    \usebeamerfont*{frametitle}
+    Existe diferença na pressão sanguínea dos pacientes entre os
+    tratamentos?
+\end{center}
+
+```{r drugTreatmentData, echo = FALSE}
+sex  <- sample(rep(c("M", "F"), 10))
+drug <- factor(rep(1:4, each=5), labels=c("P", "A", "B", "C"))
+bp   <- floor(rnorm(20, 110 - 10 * (sex == "F"), 3))
+bp[drug == "A"] <- bp[drug == "A"] - 12
+bp[drug == "C"] <- bp[drug == "C"] - 10 + 5 * (sex[drug == "C"] == "F")
+
+knitr::kable(as.data.frame(split(bp, drug)),
+             digits = 2,
+             caption = "Pressão sanguínea por tratamento")
+```
+
+***
+
+```{r drugTreatmentBoxplot, fig.height = 5.6}
+drug <- factor(rep(1:4, each=5), labels = c("P", "A", "B", "C"))
+bp   <- c(107, 111,  99, 107, 97, 102, 84, 86, 97, 99,
+          110,  99, 100, 110, 96,  96, 95, 94, 99, 94)
+plot(bp~drug, main = "Pressão sanguínea por tratamento")
+```
+
+## Avaliando o problema
+
+* Quais os tipos de variáveis envolvidas?
+* Qual a questão que deseja-se resolver?
+* Quantas categorias possui a variável qualitativa?
+* Qual a distribuição da variável quantitativa?
+
+## Avaliando o problema
+
+* Quais os tipos de variáveis envolvidas?
+  **Uma medida quantitativa e uma categórica.**
+* Qual a questão que deseja-se resolver?
+  **Saber se existe diferença entre os tratamentos.**
+* Quantas categorias possui a variável qualitativa?
+  **Quatro categorias: três compostos e o placebo**
+
+***
+
+
+* Qual a distribuição das variáveis?
+
+```{r drugTreatmentEvaluation, fig.height = 5.5}
+par(mfrow = c(1,2))
+hist(bp)
+plot(drug)
+```
+
+## ANOVA One-Way
+
+Quando deseja-se comparar a distribuição de uma medida qunatitativa
+entre três ou mais grupos usa-se ANOVA (***AN**alysis **O**f
+**VA**riance*).
+
+$$
+\begin{aligned}
+    Ho : & \hat{x}_A = \hat{x}_B = ... = \hat{x}_k \\
+    Ha : & \text{Nem todas as médias são iguais} \\
+    Ha : & \exists a, b \in \{A, B, ..., k\}: \hat{x}_a \neq \hat{x}_b
+\end{aligned}
+$$
+
+Esta análise compara a variância explicada pela média central com o
+obtido em cada grupo.
+
+***
+
+Calcula-se a razão do erro médio quadrático **entre os grupos** e
+**dentro dos grupo** para obter o valor de F.
+
+| Variação | DF      | SSQ[^1]      | MS[^2]             | F                     |
+| -------: | :------ | :----------- | :----------------- | :-------------------- |
+| Entre    | $k - 1$ | $SSQ(treat)$ | $SSQ(treat)/(k-1)$ | $MS(treat)/MS(error)$ |
+| Dentro   | $n - k$ | $SSQ(error)$ | $SSQ(error)/(n-m)$ |                       |
+| Total    | $n - 1$ | $SSQ(total)$ |                    |                       |
+
+$$ SSQ(treat) = \sum (\hat{x} - \hat{x}_i)^2 $$
+$$ SSQ(error) = \sum (x - \hat{x}_i)^2 $$
+$$ SSQ(total) = SSQ(treat) + SSQ(error) = \sum (x - \hat{x})^2 $$
+
+[^1]: Soma do erro quadrático
+[^2]: Erro quadrático médio.
+
+***
+
+```{r aovDoc, eval=FALSE}
+?aov
+## Fit an Analysis of Variance Model
+## Description:
+##      Fit an analysis of variance model by a call to ‘lm’ for each
+##      stratum.
+## Usage:
+##      aov(formula, data = NULL, projections = FALSE, qr = TRUE,
+##          contrasts = NULL, ...)
+## Arguments:
+##  formula: A formula specifying the model.
+##     data: A data frame in which the variables specified in the
+##           formula will be found. If missing, the variables are
+##           searched for in the standard way.
+```
+
+***
+
+```{r aovExample}
+(model_drug <- aov(bp~drug))
+```
+
+***
+
+```{r aovTestExample}
+summary(model_drug)
+```
+
 ## Regressão com Variáveis Discretas
 
-No mesmo estudo, os pesquisadores esperavam observar diferenças da
-sensibilidade à insulina entre pacientes com diabetes do tipo I e II.
+Outra forma de olhar o mesma análise é através de uma regressão
+linar com variáveis discretas. Neste tipo de regressão subtitui-se
+a variável em questão por várias variáveis binárias indicado cada
+categorica.
 
-```{r discreteRegressionData, echo = FALSE}
-type_1 <- c(280, 243, 207, 206, 316)
-type_2 <- c(246, 278, 295, 320, 304)
-knitr::kable(data.frame(type_1, type_2),
-             col.names = c("Type I", "Type II"),
-             caption = "Sensibilidade à insulina por tipo de diabetes")
-```
+Como numa regressão linear busca-se minimizar o erro, o $\beta$
+obtido em cada caso corresponde ao desvio da média de cada categoria
+em relação a uma categoria basal (quando incluso $\alpha$).
 
-Numa regressão linear busca-se minimizar o erro de predição ($\epsilon$) que
-por definição é obtido com o valor médio. Portanto, quando trabalhamos com
-uma preditor discreto (representada por uma ou mais variáveis com valores 0
-ou 1), $\beta$ assume o valor médio e desvio de $y$ para o grupo.
-
-***
-
-```{r discreteRegressionExample}
-sen_ins <- c(280, 243, 207, 206, 316, 246, 278, 295, 320, 304)
-dbtype  <- rep(c("I", "II"), each=5)
-lm(sen_ins ~ dbtype)
-mean(sen_ins[dbtype == "I"])
-mean(sen_ins[dbtype == "II"]) - mean(sen_ins[dbtype == "I"])
+```{r aovLmExample}
+(model_lm <- lm(bp ~ drug))
 ```
 
 ***
 
-```{r discreteRegressionPlot, fig.height=5}
-par(mfrow = c(1, 2))
-plot(dbtype=="II", sen_ins, xlim=c(-1, 2), xlab="", xaxt='n')
-points(0, mean(sen_ins[dbtype=="I"]),  col='red', pch=4)
-points(1, mean(sen_ins[dbtype=="II"]), col='blue',pch=4)
-axis(side = 1, at = 0:1, labels = c("I", "II"))
-abline(250.4, 0, col='red', lty=2)
-abline(250.4 + 38.2, 0, col='blue', lty=2)
-arrows(0.5, 250.4, 0.5, 250.4 + 38.2, lwd = .25)
+```{r aovLmPlot, fig.height = 5.5}
+cf       <- coef(model_lm)
+drugmn   <- c(cf[1], cf[1] + cf[2:4])
+drugnum  <- jitter(as.numeric(drug))
 
-boxplot(sen_ins~dbtype)
-abline(250.4 - 38.2, 38.2, lty=2)
+plot(bp~drugnum, col = drug, xaxt="n")
+points(1:4, drugmn, col=1:4, pch=4)
+abline(h = drugmn[1])
+arrows(1:4, drugmn[1], 1:4, drugmn[2:4], length=.1)
+axis(side = 1, at = 1:4, labels = levels(drug))
+legend("bottomleft", levels(drug), col = 1:4, pch = 1, bg = "white")
 ```
 
 ***
 
-```{r discreteRegressionExampleMeans}
-lm(sen_ins ~ 0 + dbtype)
-mean(sen_ins[dbtype == "I"])
-mean(sen_ins[dbtype == "II"])
+```{r aovLmMeans}
+(drugcf   <- coef(model_lm))
+(drugmean <- c(drugcf[1], drugcf[2:4] + drugcf[1]))
+
+c(mean(bp[drug == "P"]), mean(bp[drug == "A"]),
+  mean(bp[drug == "B"]), mean(bp[drug == "C"]))
+coef(lm(bp ~ 0 + drug))
 ```
 
 ***
 
-```{r discreteRegressionTestExample}
-summary(lm(sen_ins~dbtype))$coefficients
-t.test(sen_ins~dbtype, var.equal=TRUE)
+```{r aovLm}
+ssr <- sum((mean(bp) - predict(model_lm))^2)
+sse <- sum((bp - predict(model_drug))^2) # ou sum(resid(model_drug)^2)
+f   <- (ssr / (4 - 1)) / (sse / (20 - 4))
+data.frame("SSR" = ssr, "SSE" = sse, "F" = f, "P" = 1 - pf(f, 4-1, 20-4))
+
+anova(model_drug)
 ```
+
+## Exercícios - ANOVA One-way
+
+## Agora pergunta-se
+
+\begin{center}
+    \usebeamerfont*{frametitle}
+    Entre quais grupos da amostragem houve diferença?
+\end{center}
+
+
+```{r drugPlotAgain, ref.label='drugTreatmentBoxplot', echo=FALSE, fig.height=6}
+```
+
+## Post-hoc
+
+Para responder essa questão, poderiamos fazer uma série de testes t
+entre as amostras. No entanto a medida que aumentamos o número de
+testes também aumentamos as chances de identificar como significativo
+uma relação aleatória.
+
+Para cada teste (usando $\alpha = 0.05$) adimitimos uma probabilidade
+de identificar como significativo algo aleatório em 5% dos casos e
+95% de identificar corretamente. Portanto, em dois testes temos
+`r round(100 * 0.95^2, 2)`% de chance de chamar corretamente e em três
+testes temos `r round(100 * 0.95^3, 2)`%.
+
+Para reduzir esse tipo de erro, aplicamos correções do p-value, como
+**Bonferroni** e **Benjamin-Hockenberg**.
+
+```{r pvalCorrection, eval = F}
+p.adjust(pvalues, method = "bonf")
+p.adjust(pvalues, method = "fdr")
+```
+
+***
+
+```{r}
+pairwise.t.test(bp, drug, p.adjust.method = "bonf")
+```
+
+## Post-hoc (Tukey's HSD)
+
+Para **ANOVA** foi desenvolvida um teste mais preciso que utiliza
+a variação global no lugar de somente os pares (como seria feito).
+
+```{r}
+TukeyHSD(model_drug)
+```
+
+***
+
+```{r}
+plot(TukeyHSD(model_drug))
+```
+
+## Exercícios - Post-hoc
+
+# ANOVA Two-way
+
+## Imagine...
+
+Sabendo que a pressão sanguínea varia entre os sexos (masculino e
+feminino).
+
+\begin{center}
+    \usebeamerfont*{frametitle}
+    A resposta ao tratamento, varia dependendo do sexo?
+\end{center}
+
+```{r aovTWData, echo = FALSE}
+mtx <- data.frame(bp, drug, sex)
+knitr::kable(cbind(mtx[1:10,], mtx[11:20,]),
+             col.names = rep(c("Pressão Sanguínea", "Tratamento", "Sexo"), 2),
+             caption = "Pressão Sanguínea por Tratamento e sexo")
+```
+
+***
+
+```{r aovTWBoxplot, fig.height=5}
+sex <- factor(c("M","M","F","M","F","M","F","F","M","M",
+                "M","F","F","M","F","M","F","F","M","F"))
+par(mfrow = c(1,3))
+boxplot(bp~drug)
+boxplot(bp~sex)
+boxplot(bp~sex*drug, col=c('red', 'blue'))
+```
+
+## ANOVA Two-way
+
+| Fonte  | DF           | SSQ[^1]      | MS[^2]             | F                  |
+| -----: | :----------- | :----------- | :----------------- | :----------------- |
+| A      | $a - 1$      | $SSQ(A)$     | $SSQ(A)/DF(A)$     | $MS(A)/MS(error)$  |
+| B      | $b - k$      | $SSQ(B)$     | $SSQ(B)/DF(B)$     | $MS(B)/MS(error)$  |
+| AB     | $(a-1)(b-1)$ | $SSQ(AB)$    | $SSQ(AB)/DF(AB)$   | $MS(AB)/MS(error)$ |
+| Resid  | $n-ab$       | $SSQ(err)$   | $SSQ(er)/DF(err)$  |                    |
+| Total  | $n - 1$      | $SSQ(total)$ |                    |                    |
+
+$$
+\begin{aligned}
+    SSQ(A) =     & \sum (\hat{y}_i - \hat{y})^2 \\
+    SSQ(B) =     & \sum (\hat{y}_{ij} - \hat{y}_i)^2 \\
+    SSQ(AB) =    & SSQ(total) - SSQ(A) - SSQ(B) - SSQ(err) \\
+    SSQ(err) =   & \sum (y - \hat{y}_{ijk})^2 \\
+    SSQ(total) = & \sum (y - \hat{y})^2
+\end{aligned}
+$$
+
+***
+
+```{r aovTW}
+summary(aov(bp ~ sex * drug))
+```
+
+***
+
+```{r aovTWIntEffect, fig.height = 5.5}
+cf <- coef(lm(bp~0+drug*sex))
+plot(bp~jitter(as.numeric(drug)), col=sex, xaxt="n")
+axis(side = 1, 1:4, levels(drug))
+points(1:4, cf[1:4], col=1, pch=4)
+points(1:4, cf[5] + cf[1:4] + c(0, cf[6:8]), col=2, pch=2)
+arrows(1:4, cf[1:4],
+       1:4, cf[5] + cf[1:4] + c(0, cf[6:8]), length=.1)
+```
+
+***
+
+```{r aovTWManual}
+sssex  <- sum((predict(lm(bp~sex)) - predict(lm(bp~1)))^2)
+ssdrug <- sum((predict(lm(bp~sex+drug)) - predict(lm(bp~sex)))^2)
+ssint  <- sum((predict(lm(bp~sex*drug)) - predict(lm(bp~sex+drug)))^2)
+sserr  <- sum(resid(lm(bp~sex*drug))^2)
+c("SS SEX"=sssex, "SS DRUG"=ssdrug, "SS SEX:DRUG"=ssint, "SS ERR"=sserr)
+
+summary(aov(bp~sex*drug))[[1]]
+```
+
+***
+
+```{r aovTWTukey}
+par(mfrow = c(2,1))
+plot(TukeyHSD(aov(bp~sex*drug), "sex"))
+plot(TukeyHSD(aov(bp~sex*drug), "drug"))
+```
+
+***
+
+```{r aovTWTukey}
+plot(TukeyHSD(aov(bp~sex*drug), "sex:drug"))
+```
+
+## Exercícios - ANOVA Two-way
+
+# Ao final
+
+## Objetivos
+
+* Avaliar a diferença de uma variável quantitativa entre três ou mais
+  grupos.
+* Compreender o resultado de uma ANOVA.
+* Quando aplica-se uma ANOVA *one-way* ou *two-way*.
+* Como investigar a diferença entre os grupos.
+* Ilustrar os resultados.
+
+# Até a próxima
