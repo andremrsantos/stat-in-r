@@ -26,5 +26,5 @@ lodds <- rnorm(n, 0.5 * (sex == "F") + 2 * (cigar == "S") +
                   10 * amr - 1)
 
 write.table(data.frame(sex, cigar, amr, eur, afr, cdh1, tp53),
-            'cancer-mama.tsv',
+            'cancer-leucemia.tsv',
             sep = "\t", quote = FALSE, row.names = F)
