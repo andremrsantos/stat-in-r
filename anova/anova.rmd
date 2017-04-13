@@ -39,7 +39,7 @@ set.seed(551991)
 
 Pesquisadores buscando desenvolver uma nova droga para o tratamento de
 hipertensão, investigaram o efeito de três compostos sobre a pressão
-sanguínea de pacientes. Neste estudo eles distribuiram os pacientes
+sanguínea de pacientes. Neste estudo eles distribuíram os pacientes
 entre os três medicamentos totalizando 5 pacientes por composto e 5
 pacientes tratados com placebo.
 
@@ -88,7 +88,6 @@ plot(bp~drug, main = "Pressão sanguínea por tratamento")
 
 ***
 
-
 * Qual a distribuição das variáveis?
 
 ```{r drugTreatmentEvaluation, fig.height = 5.5}
@@ -99,7 +98,7 @@ plot(drug)
 
 ## ANOVA One-Way
 
-Quando deseja-se comparar a distribuição de uma medida qunatitativa
+Quando deseja-se comparar a distribuição de uma medida quantitativa
 entre três ou mais grupos usa-se ANOVA (***AN**alysis **O**f
 **VA**riance*).
 
@@ -165,9 +164,9 @@ summary(model_drug)
 ## Regressão com Variáveis Discretas
 
 Outra forma de olhar o mesma análise é através de uma regressão
-linar com variáveis discretas. Neste tipo de regressão subtitui-se
+linear com variáveis discretas. Neste tipo de regressão substitui-se
 a variável em questão por várias variáveis binárias indicado cada
-categorica.
+categórica.
 
 Como numa regressão linear busca-se minimizar o erro, o $\beta$
 obtido em cada caso corresponde ao desvio da média de cada categoria
@@ -216,6 +215,42 @@ anova(model_drug)
 
 ## Exercícios - ANOVA One-way
 
+Numa pesquisa sobre o tratamento de hipertensão, os pesquisadores
+investigaram o efeito de três diferentes compostos. Para tanto,
+eles dividiram uma coorte de 64 pacientes em quatro tratamento para
+cada composto diferente e um recebendo placebo.
+
+1. Ilustre a distribuição da pressão arterial entre os diferentes
+   tratamentos.
+2. Avalie se existe diferença entre os tratamentos.
+
+```{r loadData}
+hbp <- read.table('hbp-treatment.tsv', header=T)
+```
+
+***
+
+1. Ilustre a distribuição da pressão arterial entre os diferentes
+   tratamentos.
+
+***
+
+```{r aovEx1}
+par(mfrow = c(1,2))
+hist(bp)
+boxplot(bp~drug, data=hbp)
+```
+
+***
+
+2. Avalie se existe diferença entre os tratamentos.
+
+***
+
+```{r aovEx2}
+summary(aov(bp~drug))
+```
+
 ## Agora pergunta-se
 
 \begin{center}
@@ -229,12 +264,12 @@ anova(model_drug)
 
 ## Post-hoc
 
-Para responder essa questão, poderiamos fazer uma série de testes t
+Para responder essa questão, poderíamos fazer uma série de testes t
 entre as amostras. No entanto a medida que aumentamos o número de
 testes também aumentamos as chances de identificar como significativo
 uma relação aleatória.
 
-Para cada teste (usando $\alpha = 0.05$) adimitimos uma probabilidade
+Para cada teste (usando $\alpha = 0.05$) admitimos uma probabilidade
 de identificar como significativo algo aleatório em 5% dos casos e
 95% de identificar corretamente. Portanto, em dois testes temos
 `r round(100 * 0.95^2, 2)`% de chance de chamar corretamente e em três
@@ -250,7 +285,7 @@ p.adjust(pvalues, method = "fdr")
 
 ***
 
-```{r}
+```{r pairwiseComparison}
 pairwise.t.test(bp, drug, p.adjust.method = "bonf")
 ```
 
@@ -259,17 +294,33 @@ pairwise.t.test(bp, drug, p.adjust.method = "bonf")
 Para **ANOVA** foi desenvolvida um teste mais preciso que utiliza
 a variação global no lugar de somente os pares (como seria feito).
 
-```{r}
+```{r tukeyHSD}
 TukeyHSD(model_drug)
 ```
 
 ***
 
-```{r}
+```{r tukeyHSDPlot}
 plot(TukeyHSD(model_drug))
 ```
 
 ## Exercícios - Post-hoc
+
+Para os dados do exercícios anterior, avalie entre quais tratamentos
+houve diferenças significativas da pressão arterial. Ilustre a
+diferença entre os grupos.
+
+***
+
+```{r postHocEx1}
+TukeyHSD(aov(bp~drug, data=hbp))
+```
+
+***
+
+```{r postHocEx2}
+plot(TukeyHSD(aov(bp~drug, data=hbp)))
+```
 
 # ANOVA Two-way
 
@@ -353,7 +404,7 @@ summary(aov(bp~sex*drug))[[1]]
 
 ***
 
-```{r aovTWTukey}
+```{r aovTWTukeyPlot1}
 par(mfrow = c(2,1))
 plot(TukeyHSD(aov(bp~sex*drug), "sex"))
 plot(TukeyHSD(aov(bp~sex*drug), "drug"))
@@ -361,11 +412,65 @@ plot(TukeyHSD(aov(bp~sex*drug), "drug"))
 
 ***
 
-```{r aovTWTukey}
+```{r aovTWTukeyPlot2}
 plot(TukeyHSD(aov(bp~sex*drug), "sex:drug"))
 ```
 
 ## Exercícios - ANOVA Two-way
+
+Visto que a pressão arterial média difere entre homens e mulheres, os
+pesquisadores decidiram avaliar se o efeito dos medicamentos também
+varia entre os sexos.
+
+1. Ilustre a distribuição de pressão arterial entre os tratamentos e
+   sexo dos pacientes.
+2. Avalie se o efeito de algum dos tratamentos varia em função do
+   sexo dos pacientes e identifique qual.
+
+***
+
+1. Ilustre a distribuição de pressão arterial entre os tratamentos e
+   sexo dos pacientes.
+
+***
+
+```{r aovTWEx1}
+boxplot(bp~sex*drug, data=hbp, col = c("red", "blue"))
+```
+
+***
+
+2. Avalie se o efeito de algum dos tratamentos varia em função do
+   sexo dos pacientes e identifique qual.
+
+***
+
+```{r aovTWEx2}
+summary(aov(bp~sex*drug))
+```
+
+***
+
+```{r aovTWEXTukey}
+TukeyHSD(aov(bp~sex*drug))$`sex:drug`
+```
+
+***
+
+```{r aovTWEXTukeyPlot, fig.height = 4.2}
+table <- TukeyHSD(aov(bp~sex*drug))$`sex:drug`
+rows  <- c("M:P-F:P", "M:A-F:A", "M:B-F:B", "M:C-F:C")
+set   <- as.data.frame(table[rows,])
+par(mar=c(4, 6, 2, 2))
+plot(range(set), c(1, nrow(set)), type="n",
+     xlab = "diff", ylab = "", yaxt="n")
+abline(v = 0, lty=2)
+points(set$diff, 1:4)
+arrows(set$lwr, 1:4, set$upr, 1:4, angle=90, code = 3, length = .1)
+axis(side = 2, 1:4, rownames(set), las=2)
+
+boxplot(bp~sex:drug, data=hbp)
+```
 
 # Ao final
 
