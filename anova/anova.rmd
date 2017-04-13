@@ -457,10 +457,15 @@ TukeyHSD(aov(bp~sex*drug))$`sex:drug`
 
 ***
 
-```{r aovTWEXTukeyPlot, fig.height = 4.2}
-table <- TukeyHSD(aov(bp~sex*drug))$`sex:drug`
+```{r aovTWEXTukeySubset}
+table <- TukeyHSD(aov(bp~sex*drug, data=hbp))$`sex:drug`
 rows  <- c("M:P-F:P", "M:A-F:A", "M:B-F:B", "M:C-F:C")
-set   <- as.data.frame(table[rows,])
+(set  <- as.data.frame(table[rows,]))
+```
+
+***
+
+```{r aovTWTukeyPlot, fig.height = 5}
 par(mar=c(4, 6, 2, 2))
 plot(range(set), c(1, nrow(set)), type="n",
      xlab = "diff", ylab = "", yaxt="n")
@@ -468,8 +473,12 @@ abline(v = 0, lty=2)
 points(set$diff, 1:4)
 arrows(set$lwr, 1:4, set$upr, 1:4, angle=90, code = 3, length = .1)
 axis(side = 2, 1:4, rownames(set), las=2)
+```
 
-boxplot(bp~sex:drug, data=hbp)
+***
+
+```{r aovTWEx3}
+coef(summary(lm(bp~sex*drug)))
 ```
 
 # Ao final
