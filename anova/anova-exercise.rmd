@@ -1,0 +1,48 @@
+---
+title: "Bioestatística em R - Exercícios"
+geometry:   margin=1in
+fontfamily: mathpazo
+fontsize:   12pt
+spacing:    double
+output:
+    pdf_document:
+        latex_engine: pdflatex
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(prompt = TRUE,
+                      eval = FALSE,
+                      echo = FALSE,
+                      warning = FALSE)
+set.seed(551991)
+```
+
+\begin{itemize}
+    \item[] \makebox[2cm]{Nome:\hfill}      \line(1,0){250}
+    \item[] \makebox[2cm]{Data:\hfill}      \line(1,0){250}
+    \item[] \makebox[2cm]{Matricula:\hfill} \line(1,0){250}
+\end{itemize}
+
+# ANOVA
+
+xxx
+
+```{r loadData, echo = TRUE, eval = TRUE}
+tumor <- read.table('tumor-treatment.tsv', header=T)
+summary(tumor)
+```
+
+1. xxx
+
+```{r exerciseQ1}
+```
+
+2. xxx
+
+```{r exerciseQ2}
+```
+
+3. xxx
+
+```{r exerciseQ3}
+```
