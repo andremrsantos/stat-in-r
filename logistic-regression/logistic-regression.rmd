@@ -36,7 +36,7 @@ set.seed(551991)
 
 Em um estudo caso/controle, pesquisadores desejavam associar a presença
 de câncer com um polimorfismo do gene CDH1, no entanto fatores como sexo
-e tabagismo influenciam o risco de desvolvimento do câncer.
+e tabagismo influenciam o risco do do câncer.
 
 \begin{center}
     \usebeamerfont*{frametitle}
@@ -85,27 +85,27 @@ barplot(table(cdh1)); barplot(table(cancer))
 ## Avaliando o problema
 
 * Qual o tipo das variáveis sendo relacionadas?
-  **Queremos associar duas variáveis categoricas, sendo uma binomial**
+  **Queremos associar duas variáveis categóricas, sendo uma binomial**
 * Qual o objetivo?
-  **Queremos associar duas variáveis categoricas, medindo a influência
+  **Queremos associar duas variáveis categóricas, medindo a influência
   de uma sobre a outra**
 
 ***
 
-Se quisessemos somente associar o genótipo a presença ou não da doença
-usariamos um **qui-quadrado**.
+Se quiséssemos somente associar o genótipo a presença ou não da doença
+usaríamos um **qui-quadrado**.
 
 ```{r cancerChi}
 chisq.test(table(cancer, cdh1))
 ```
 
 No entanto, essa análise não indica a intensidade da relação, nem é capaz
-de considerar **confudidores** (Outros fatores que sabe-se estar relaciondo
+de considerar **confundidores** (Outros fatores que sabe-se estar relacionado
 com a resposta, mas não é o alvo principal).
 
 ## Regressão Logística
 
-Para esses casos, a análise mais indicade é uma **regressão logística**.
+Para esses casos, a análise mais indicada é uma **regressão logística**.
 Esta análise é uma especificação de um regressão linear que no lugar de
 buscar relacionar medidas a um variável resposta quantitativa, ela
 relaciona a uma variável resposta binária (**TRUE** ou **FALSE**).
@@ -188,6 +188,18 @@ plot(or[,1], 1:5, xlim = range(or), yaxt= "n")
 arrows(or[,2], 1:5, or[,3], 1:5, angle = 90, length = 0.15, code=3)
 abline(v = 1, lty = 2)
 axis(2, 1:5, rownames(or))
+```
+
+## Bonus - Modelos Genéticos
+
+| Additivo     | Recessivo   | Dominante   |
+| -----------: | ----------: | ----------: |
+| aa < Aa < AA | aa/Aa vs AA | aa vs Aa/AA |
+
+```{r geneticModels, eval = FALSE}
+add <- as.numeric(factor(cdh1))
+dom <- cdh1 != "aa"
+rec <- cdh1 == "AA"
 ```
 
 ## Exercícios - Regressão Logística
