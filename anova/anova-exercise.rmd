@@ -1,0 +1,86 @@
+---
+title: "Bioestatística em R - Exercícios"
+geometry:   margin=1in
+fontfamily: mathpazo
+fontsize:   12pt
+spacing:    double
+output:
+    pdf_document:
+        latex_engine: pdflatex
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo=FALSE, eval=FALSE,
+                      warning = FALSE)
+set.seed(551991)
+```
+
+\begin{itemize}
+    \item[] \makebox[2cm]{Nome:\hfill}      \line(1,0){250}
+    \item[] \makebox[2cm]{Data:\hfill}      \line(1,0){250}
+    \item[] \makebox[2cm]{Matricula:\hfill} \line(1,0){250}
+\end{itemize}
+
+# ANOVA
+
+Estudando um novo tratamento para câncer, os pesquisadores avaliaram o
+tamanho do tumor (`growth`) em camundongos em resposta à diferentes
+dosagens do medicamento X (`dose`). Além disso, eles também decidiram
+avaliar o efeito da adição de vitamina C (`sup`), uma vez que estudos
+anteriores indicaram a interação entre os compostos. Sobre o *dataset*
+responda:
+
+```{r loadData, echo = TRUE, eval = TRUE}
+tumor <- read.table('tumor-treatment.tsv', header=T)
+tumor$dose <- factor(tumor$dose, levels = c('0mg', '5mg', '10mg', '50mg'))
+summary(tumor)
+```
+
+1. Ilustre a distribuição do tamanho do tumor entre as diferentes
+   dosagens do composto, com ou sem suplemento e entre as dosagens
+   considerando o suplemento.
+
+```{r exerciseQ1}
+par(mar = rep(2,4))
+layout(matrix(c(1,2, 3, 3), 2, 2, byrow=TRUE))
+boxplot(growth~dose, data=tumor)
+boxplot(growth~sup, data=tumor)
+boxplot(growth~dose:sup, data=tumor)
+```
+
+2. Avalie se o tamanho do tumor varia entre as diferentes dosagens,
+   indicando entre quais pares houve diferenças significativas. Ilustre
+   a comparação entre as dosagens.
+
+```{r exerciseQ2}
+## avalia a diferença entre as categorias de dosagem
+model <- aov(growth~dose, data=tumor)
+summary(model)
+## compara os pares de dossagem
+TukeyHSD(model)
+## Ilustrar as diferenças entre as categorias
+plot(TukeyHSD(model))
+```
+
+3. Agora considerando o suplemento, avalie se a suplementação com
+   vitamina C influencia a resposta a dosagem do tratamento.
+
+```{r exerciseQ3}
+## avalia se ambas medidas e a interação influenciam o tamanho
+model <- lm(growth~dose*sup, data=tumor)
+anova(model)
+## avalia o efeito da interação
+summary(model)
+```
+
+4. Compare a média de tamanho do tumor entre os camundongos que
+   receberam suplemento e os que não receberam com a mesma dosagem.
+   Indique para quais dosagens as diferenças foram significativas.
+
+```{r exerciseQ4}
+model <- aov(growth~dose*sup, data=tumor)
+tukey <- TukeyHSD(model)$'dose:sup'
+rows  <- c('0mg:vitC-0mg:none', '5mg:vitC-5mg:none',
+           '10mg:vitC-10mg:none', '50mg:vitC-50mg:none')
+tukey[rows,]
+```
