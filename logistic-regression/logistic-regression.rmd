@@ -204,6 +204,104 @@ rec <- cdh1 == "AA"
 
 ## Exercícios - Regressão Logística
 
+Em um estudo de cancer de mama, os pesquisadores desejam avaliar a
+associação de dois polimorfismos com o risco de desenvolver leucemia.
+Sobre o *dataset* responda:
+
+1. Dado todas as medidas avaliadas (`sex`, `cigar`, `amr`, `eur`, e
+   `afr`), avalie quais apresentam diferenças entre os casos e controle.
+2. Ilustre a diferença de frequencia de casos e controle entre os alelos
+   de ambos polimorfismos invesitgados (`cdh1`, `tp53`). Algum modelo
+   de efeito genético parece mais plausível?
+3. Utilizando as medidas com diferença entre caso e controle como
+   confundidores, modele o risco de desenvolver leucemia em função de
+   cada polimorfismo. Utilize o modelo genético que considerar mais
+   adequado.
+4. Ilustre o odds-ratio do polimorfismo para os modelos desenvolvidos na
+   questão anterior.
+
+```{r loadData}
+cancer <- read.table('cancer-leucemia.tsv', header=T)
+```
+
+***
+
+1. Dado todas as medidas avaliadas (`sex`, `cigar`, `amr`, `eur`, e
+   `afr`), avalie quais apresentam diferenças entre os casos e controle.
+
+***
+
+```{r}
+fisher.test(table(cancer$sex, cancer$cancer))$p.value
+fisher.test(table(cancer$cigar, cancer$cancer))$p.value
+wilcox.test(amr~cancer, data=cancer)$p.value
+wilcox.test(afr~cancer, data=cancer)$p.value
+wilcox.test(eur~cancer, data=cancer)$p.value
+```
+
+***
+
+2. Ilustre a diferença de frequencia de casos e controle entre os alelos
+   de ambos polimorfismos invesitgados (`cdh1`, `tp53`). Algum modelo
+   de efeito genético parece mais plausível?
+
+***
+
+```{r}
+par(mfrow = c(1,2))
+barplot(prop.table(table(cancer$cancer, cancer$cdh1),2))
+barplot(prop.table(table(cancer$cancer, cancer$tp53), 2))
+```
+
+***
+
+3. Utilizando as medidas da questão 1 com confundidores, modele o risco
+   de desenvolver leucemia em função de cada polimorfismo. Utilize o
+   modelo genético que considerar mais adequado.
+
+***
+
+```{r}
+cancer$has_cancer <- cancer$cancer == "Caso"
+cancer$cdh1dom <- cancer$cdh1 != "11"
+cancer$tp53rec <- cancer$tp53 == "22"
+model_cdh1 <- glm(has_cancer~cdh1dom+sex+cigar+afr+eur, data=cancer)
+model_tp53 <- glm(has_cancer~tp53rec+sex+cigar+afr+eur, data=cancer)
+```
+
+***
+
+```{r change_size="\\footnotesize"}
+summary(model_cdh1)
+```
+
+***
+
+```{r change_size="\\footnotesize"}
+summary(model_tp53)
+```
+
+***
+
+4. Ilustre o odds-ratio do polimorfismo para os modelos desenvolvidos na
+   questão anterior.
+
+***
+
+```{r}
+ora <- exp(cbind(coef(model_cdh1), confint(model_cdh1)))["cdh1domTRUE",]
+orb <- exp(cbind(coef(model_tp53), confint(model_tp53)))["tp53recTRUE",]
+(or <- rbind(ora, orb))
+```
+
+***
+
+```{r}
+plot(or[,1], 1:2, yaxt="n")
+axis(2, 1:2, rownames(or))
+arrows(or[,2], 1:2, or[,3], 1:2, code=3, angle=90, length=0.15)
+```
+
 # Ao final...
 
 ## Objetivos
