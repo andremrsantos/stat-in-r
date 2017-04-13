@@ -7,9 +7,9 @@ n <- 64
 ## Generate in class exercises dataset
 sex  <- sample(c("M", "F"), n, replace = T)
 drug <- rep(c("P", "A", "B", "C"), each=n/4)
-bp   <- rnorm(n, 100 - 10 * (sex=="F"), 3)
+bp   <- rnorm(n, 120 - 10 * (sex=="F"), 3)
 bp[drug=="A"] <- bp[drug=="A"] - 12
-bp[drug=="C"] <- bp[drug=="C"] - (15 + 7 * (sex[drug=="C"]=="F"))
+bp[drug=="C"] <- bp[drug=="C"] - 15 - 7 * (sex[drug=="C"]=="F")
 
 write.table(data.frame(sex, drug, bp),
             'hbp-treatment.tsv',
