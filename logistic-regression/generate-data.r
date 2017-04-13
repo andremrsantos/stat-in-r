@@ -24,7 +24,8 @@ amr   <- anc["amr",]
 lodds <- rnorm(n, 0.5 * (sex == "F") + 2 * (cigar == "S") +
                   3 * (cdh1 == "11") - 2.5 * (tp53 != "22") +
                   10 * amr - 1)
+cancer <- ifelse(plogis(lodds) < 0.5, "Caso", "Controle")
 
-write.table(data.frame(sex, cigar, amr, eur, afr, cdh1, tp53),
+write.table(data.frame(sex, cigar, amr, eur, afr, cdh1, tp53, cancer),
             'cancer-leucemia.tsv',
             sep = "\t", quote = FALSE, row.names = F)
