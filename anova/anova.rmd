@@ -446,13 +446,13 @@ boxplot(bp~sex*drug, data=hbp, col = c("red", "blue"))
 ***
 
 ```{r aovTWEx2}
-summary(aov(bp~sex*drug))
+summary(aov(bp~sex*drug, data = hbp))
 ```
 
 ***
 
 ```{r aovTWEXTukey}
-TukeyHSD(aov(bp~sex*drug))$`sex:drug`
+TukeyHSD(aov(bp~sex*drug, data = hbp))$`sex:drug`
 ```
 
 ***
@@ -478,7 +478,7 @@ axis(side = 2, 1:4, rownames(set), las=2)
 ***
 
 ```{r aovTWEx3}
-coef(summary(lm(bp~sex*drug)))
+coef(summary(lm(bp~sex*drug, data=hbp)))
 ```
 
 # Ao final
